@@ -1,0 +1,103 @@
+   This is connect.info, produced by makeinfo version 4.7 from ../src/connect.texi.
+
+
+
+File: connect.info,  Node: Connect to a Display
+
+2 Connect to a Display
+**********************
+
+To be able to perform any X operations, you must first establish a
+connection to the display.  This is done by instantiating a
+`display.Display' object:
+
+ -- Class: Display ( [ displayname ] )
+     Create a connection to the display called DISPLAYNAME.  If
+     DISPLAYNAME is None or not provided, connect to the default
+     display.
+
+     If the connection fails for some reason, one of the errors from the
+     following error class tree is raised:
+
+          Exception
+           \_error.DisplayError
+              \_error.DisplayNameError
+              \_error.DisplayConnectionError
+
+     `error.DisplayNameError' is raised if DISPLAYNAME, or the default
+     display name, is malformed.  `error.DisplayConnectionError' is
+     raised if the connection to the X server fails.  This might be
+     caused by the network connection to the display failing, or if the
+     client isn't authorized to connect to the display.
+
+
+   The syntax of a display name and how the library finds the default
+display name depends on the operating system where the client runs.
+
+* Menu:
+
+* Unix Display Names::     Most Unix-style operating systems.
+* OpenVMS Display Names::  Digital^H^H^H^H^H^H^HCompaq OpenVMS.
+
+
+File: connect.info,  Node: Unix Display Names,  Next: OpenVMS Display Names,  Up: Connect to a Display
+
+2.1 Unix Display Names
+======================
+
+A display name on Unix has the following syntax:
+
+     [hostname]:displayno[.screenno]
+
+   If HOSTNAME is omitted this refers to a display on the same machine
+as the client is running on.  A Unix socket is used to connect to the
+display identified by `displayno', which must be an integer from 0 and
+upwards.
+
+   If HOSTNAME is specified, it gives the network name or IP-number of
+the machine to contact.  A TCP socket is used, connecting to port
+6000+DISPLAYNO on HOSTNAME.
+
+   If the display contains more than one screen, SCREENNO can be
+specified to make another screen than 0 the default screen.  If the
+number is larger than the available maximum screen number, it will be
+set to the maximum.
+
+   A few examples:
+
+     :0           Display 0 on this host, connects to the Unix socket
+                  /tmp/.X11-unix/X0
+     :0.1         Same as above, but specifying a different default screen
+
+     myhost:0     Display 0 on myhost, connects to TCP port 6000
+     myhost:10    Display 10 on myhost, connects to TCP port 6010
+
+     localhost:0  Display 0 on localhost, i.e. the same host as the client
+                  runs on.  Uses a TCP socket, while :0 uses a Unix socket
+
+   The default display name is stored in the environmental variable
+`DISPLAY'.  If that isn't set, `error.DisplayNameError' is raised.
+
+
+File: connect.info,  Node: OpenVMS Display Names,  Prev: Unix Display Names,  Up: Connect to a Display
+
+2.2 OpenVMS Display Names
+=========================
+
+Currently the X Python Library only supports TCP connections on OpenVMS.
+Display names are identical to Unix display names, but if the hostname
+is omitted, `localhost' is used.  The default display name is
+hard-coded to `localhost:0.0'.
+
+   In the future, the native DECWindows system should be used.  This
+means using LOCAL or DECNET transports if set, and using the logical
+name `DECW$DISPLAY' as the default display.
+
+
+
+Tag Table:
+Node: Connect to a Display85
+Node: Unix Display Names1387
+Node: OpenVMS Display Names2861
+
+End Tag Table

@@ -1,0 +1,2254 @@
+   This is python-xlib.info, produced by makeinfo version 4.7 from ../src/python-xlib.texi.
+
+
+
+   This file documents the Python X Library.
+
+Copyright 2000-2001 Peter Liljenberg
+
+Permission is granted to make and distribute verbatim
+copies of this manual provided the copyright notice and
+this permission notice are preserved on all copies.
+
+Permission is granted to copy and distribute modified
+versions of this manual under the conditions for
+verbatim copying, provided also that the sections
+entitled "Copying" and "GNU General Public License"
+are included exactly as in the original, and provided
+that the entire resulting derived work is distributed
+under the terms of a permission notice identical to this
+one.
+
+Permission is granted to copy and distribute
+translations of this manual into another language,
+under the above conditions for modified versions,
+except that this permission notice may be stated in a
+translation approved by the Free Software Foundation.
+
+
+File: python-xlib.info,  Node: Top,  Next: Basic X Concepts,  Up: (dir)
+
+Introduction
+************
+
+The Python X Library is a complete library for writing X Windows client
+applications in Python.  It implements the entire X11R6 protocol and
+some extensions, and also some supplementary functionality such as a
+resource database.  It is written entirely in Python, and is therefore
+entirely independent of the traditional C Xlib; it only requires a
+Python installation with network support.
+
+   Although the X11R6 protocol is the basis of all X client
+applications, it is a little too low-level to be useful for writing
+advanced graphical interfaces.  To this end, many different widget sets
+has been developed, a few of the more popular are Motif, Qt and Gtk.
+The Python X Library is not compatible with any of these, as they are
+based on the C Xlib.  As a result the Python X Library isn't in itself
+very useful for writing GUIs, but is eminent for writing small X
+applications with no advanced GUI, e.g. simple monitor programs, or for
+that matter more advanced background applications such as window
+managers.
+
+* Menu:
+
+* Basic X Concepts::      The fundamental X Windows concepts.
+* Package Layout::        The layout of the Python Xlib package.
+* Connect to a Display::  Connecting to a X server display.
+* Error Handling::        Handling X errors.
+* Event Handling::        Handling X events.
+* X Objects::             X objects and their operations.
+
+
+File: python-xlib.info,  Node: Basic X Concepts,  Next: Package Layout,  Prev: Top,  Up: Top
+
+7 Basic X Concepts
+******************
+
+Here you might find an introduction to X concepts sometime in the
+future.  For now, I just refer to the introduction parts of the standard
+X documentation.  A vast collection of X documentation links can be
+found at `http://www.rahul.net/kenton/xsites.html'.
+
+
+File: python-xlib.info,  Node: Package Layout,  Next: Connect to a Display,  Prev: Basic X Concepts,  Up: Top
+
+8 Package Layout
+****************
+
+The Python X Library is distributed as a Python package, named `Xlib'.
+It contains a number of modules providing the main library interface:
+
+`display'
+     Contains the `Display' class, providing the X connection and access
+     to all other X objects and operations.
+
+`error'
+     Contains all `Xlib' exception classes.
+
+`threaded'
+     Imported to set up the library to be thread-safe.
+
+`rdb'
+     Contains `ResourceDB', an X resource database class, and related
+     code.
+
+`X'
+     Contains symbolic names for all basic X protocol constants.
+
+`Xutil'
+     Contains additional constants for mainly the ICCCM standard.
+
+`XK'
+     Contains symbolic names for all X keysyms.
+
+`Xatom'
+     Contains symbolic names for all standard X atoms.
+
+`Xcursorfont'
+     Contains symbolic names for all standard X fonts.
+
+
+   There is also a number of subpackages, but they will mainly be of
+interest to developers of the Xlib itself:
+
+`protocol'
+     The low-level protocol implementation.  Contains definitions of
+     all X request, responses, events and errors, in addition to the
+     core network code.  The high-level object oriented interface
+     provided by `Xlib.display' is merely a wrapper around this package.
+
+`support'
+     Miscellaneous supporting code for handling threads and operating
+     system-specific features.
+
+`xobject'
+     Contains classes for all X objects, which are returned by various
+     display operations.
+
+`ext'
+     Contains various X protocol extensions.  Extensions supported by
+     the server are loaded automatically at the display connection.
+
+
+
+File: python-xlib.info,  Node: Connect to a Display,  Next: Error Handling,  Prev: Package Layout,  Up: Top
+
+9 Connect to a Display
+**********************
+
+To be able to perform any X operations, you must first establish a
+connection to the display.  This is done by instantiating a
+`display.Display' object:
+
+ -- Class: Display ( [ displayname ] )
+     Create a connection to the display called DISPLAYNAME.  If
+     DISPLAYNAME is None or not provided, connect to the default
+     display.
+
+     If the connection fails for some reason, one of the errors from the
+     following error class tree is raised:
+
+          Exception
+           \_error.DisplayError
+              \_error.DisplayNameError
+              \_error.DisplayConnectionError
+
+     `error.DisplayNameError' is raised if DISPLAYNAME, or the default
+     display name, is malformed.  `error.DisplayConnectionError' is
+     raised if the connection to the X server fails.  This might be
+     caused by the network connection to the display failing, or if the
+     client isn't authorized to connect to the display.
+
+
+   The syntax of a display name and how the library finds the default
+display name depends on the operating system where the client runs.
+
+* Menu:
+
+* Unix Display Names::     Most Unix-style operating systems.
+* OpenVMS Display Names::  Digital^H^H^H^H^H^H^HCompaq OpenVMS.
+
+
+File: python-xlib.info,  Node: Unix Display Names,  Next: OpenVMS Display Names,  Up: Connect to a Display
+
+9.1 Unix Display Names
+======================
+
+A display name on Unix has the following syntax:
+
+     [hostname]:displayno[.screenno]
+
+   If HOSTNAME is omitted this refers to a display on the same machine
+as the client is running on.  A Unix socket is used to connect to the
+display identified by `displayno', which must be an integer from 0 and
+upwards.
+
+   If HOSTNAME is specified, it gives the network name or IP-number of
+the machine to contact.  A TCP socket is used, connecting to port
+6000+DISPLAYNO on HOSTNAME.
+
+   If the display contains more than one screen, SCREENNO can be
+specified to make another screen than 0 the default screen.  If the
+number is larger than the available maximum screen number, it will be
+set to the maximum.
+
+   A few examples:
+
+     :0           Display 0 on this host, connects to the Unix socket
+                  /tmp/.X11-unix/X0
+     :0.1         Same as above, but specifying a different default screen
+
+     myhost:0     Display 0 on myhost, connects to TCP port 6000
+     myhost:10    Display 10 on myhost, connects to TCP port 6010
+
+     localhost:0  Display 0 on localhost, i.e. the same host as the client
+                  runs on.  Uses a TCP socket, while :0 uses a Unix socket
+
+   The default display name is stored in the environmental variable
+`DISPLAY'.  If that isn't set, `error.DisplayNameError' is raised.
+
+
+File: python-xlib.info,  Node: OpenVMS Display Names,  Prev: Unix Display Names,  Up: Connect to a Display
+
+9.2 OpenVMS Display Names
+=========================
+
+Currently the X Python Library only supports TCP connections on OpenVMS.
+Display names are identical to Unix display names, but if the hostname
+is omitted, `localhost' is used.  The default display name is
+hard-coded to `localhost:0.0'.
+
+   In the future, the native DECWindows system should be used.  This
+means using LOCAL or DECNET transports if set, and using the logical
+name `DECW$DISPLAY' as the default display.
+
+
+File: python-xlib.info,  Node: Error Handling,  Next: Event Handling,  Prev: Connect to a Display,  Up: Top
+
+10 Error Handling
+*****************
+
+If an X object method generates an error, it will be handled in one of
+two different ways depending on the kind of method.  Errors are
+represented by X error objects in the Xlib.
+
+   If the method _does not_ return data, the error will most likely be
+detected after the method has returned.  All methods which does not
+return data has a parameter called `onerror', which can be used to
+provide a error handler for any error generated by this method.
+
+   The error handler is called with to arguments: the error object and
+the low-level request object.  The error _must not_ do call any X
+object methods.  If that is necessary, the error handler must store the
+error away for later retrieval.  The class `error.CatchError' is
+provided for this purpose.
+
+   If no error handler is given when calling a method which generates an
+error, the error will be passed to the default error handler.  If no
+default error handler is specified, the error is simply printed on
+`sys.stderr'.
+
+   If the method _does_ return data, the error will make it impossible
+for it to return any valid data.  An exception is raised with the error
+object as the exception value.  It is not passed to any error handlers.
+
+* Menu:
+
+* X Error Classes::  X error class hierarchy.
+* CatchError::       Error handler class.
+
+
+File: python-xlib.info,  Node: X Error Classes,  Next: CatchError,  Up: Error Handling
+
+10.1 X Error Classes
+====================
+
+X errors are structured in the following class hierarchy:
+
+     Exception
+      \_ error.XError
+          \_ error.BadRequest
+          \_ error.BadValue
+          \_ error.BadAtom
+          \_ error.BadMatch
+          \_ error.BadAccess
+          \_ error.BadAlloc
+          \_ error.BadName
+          \_ error.BadLength
+          \_ error.BadImplementation
+          \_ error.XResourceError
+              \_ error.BadWindow
+              \_ error.BadPixmap
+              \_ error.BadCursor
+              \_ error.BadFont
+              \_ error.BadDrawable
+              \_ error.BadColor
+              \_ error.BadGC
+              \_ error.BadIDChoice
+
+   All error objects has the following attributes:
+
+`code'
+     The numeric error code
+
+`sequence_number'
+     The sequence number of the failed request
+
+`resource_id'
+     The bad resource id.  For all the `error.XResourceError' this is a
+     X resource object.  For the other errors it is an integer, which
+     for some errors might have no meaning
+
+`major_opcode'
+     The major opcode for the failed request
+
+`minor_opcode'
+     The minor opcode for the failed request.  This will be zero for
+     all base X11R6 request, but will be interesting for extension
+     requests
+
+
+
+File: python-xlib.info,  Node: CatchError,  Prev: X Error Classes,  Up: Error Handling
+
+10.2 CatchError
+===============
+
+`error.CatchError' is an object which can be used as an error handler.
+It collects an error matching any of the specified types, which can be
+retrieved later.  If several errors occur, only the last one is
+remembered.
+
+ -- Class: CatchError ( *errors )
+     Create a new error handler object.  Initialize by providing all
+     error classes you are interested in as arguments.  If no error
+     classes are provided at all, this means that all errors will be
+     considered.
+
+
+   Pass the `error.CatchError' object as the `onerror' parameter to X
+object methods.  If these methods generated any errors matching the
+ones specified, it can be retrieved with the following functions:
+
+ -- Method on CatchError: get_error ( )
+     Return the last error object caught, or None if no matching errors
+     has occured.
+
+
+ -- Method on CatchError: get_request ( )
+     Return the request object for the last error caught, or None if no
+     matching errors has occured.
+
+
+   `error.CatchError' objects can be reused:
+
+ -- Method on CatchError: reset ( )
+     Forget any caught error.
+
+
+   Since the X protocol is mostly asynchronous any error we're watching
+for might not have been recieved when we call `get_error'.  To make
+sure that the request has been processed by the server and any error
+generated has been received by the Xlib, we must synchronize with the
+server.
+
+   An example of using `error.CatchError':
+
+     # Resize and the foo window
+     # If it has been destroyed since we looked at it the last time,
+     # reset variable foo to None
+
+     # Create a error handler for BadWindow errors
+     ec = error.CatchError(error.BadWindow)
+
+     # Perform the operation
+     foo.configure(width = 100, height = 200, onerror = ec)
+
+     # Sync communication with server
+     display.sync()
+
+     # And check if there was any error
+     if ec.get_error():
+         foo = None
+
+
+File: python-xlib.info,  Node: Event Handling,  Next: X Objects,  Prev: Error Handling,  Up: Top
+
+11 Event Handling
+*****************
+
+Events are sent from the X server to the X client.  Most of the event
+types deal with user input, but there are also event types used for
+inter-client communication.
+
+   Most X applications are built around an event loop, where the client
+waits for the server to send events.  The client responds to the events,
+typically by doing one or more X requests.
+
+* Menu:
+
+* Getting Events::    Waiting for events.
+* Selecting Events::  Selecting interesting events.
+* Event Types::       Details on all event types.
+* Sending Events::    Clients sending events to other clients.
+
+
+File: python-xlib.info,  Node: Getting Events,  Next: Selecting Events,  Up: Event Handling
+
+11.1 Getting Events
+===================
+
+Events can be sent at any time, not necessarily when the client is ready
+to recieve an event. Therefore they must be stored temporarily from that
+they are read from the network until the client is ready to handle them.
+Read but unhandled events are stored on an event queue in the Display
+object.  There are two functions to access this queue:
+
+ -- Method on Display: next_event ( )
+     Return the next event in the event queue.  If the event queue is
+     empty, block until an event is read from the network, and return
+     that one.
+
+
+ -- Method on Display: pending_events ( )
+     Return the number of events which can be returned without blocking.
+
+
+   A trivial event loop would simply loop infinitely, waiting for an
+event and then handling it.  It could look like this:
+
+     while 1:
+        event = disp.next_event()
+        handle_event(event)
+
+   However, most applications need more control, e.g. to simultaneously
+handle a network connection or at regular intervals schedule timeouts.
+The module `select' is often used for this.  `Display' objects can be
+used with `select', since they have the required `fileno()' method.
+When `select' indicates that a `Display' object is ready for reading,
+that means that the server has sent some data to the client.  That
+alone doesn't guarantee that an entire event has arrived, so one must
+first use `pending_events()' to make sure that `next_event()' will
+return without blocking.  A simple event loop which waits for events or
+a one-second timeout looks like this:
+
+     while 1:
+         # Wait for display to send something, or a timeout of one second
+         readable, w, e = select.select([disp], [], [], 1)
+
+         # if no files are ready to be read, it's an timeout
+         if not readable:
+             handle_timeout()
+
+         # if display is readable, handle as many events as have been recieved
+         elif disp in readable:
+             i = disp.pending_events()
+             while i > 0:
+                 event = disp.next_event()
+                 handle_event(event)
+                 i = i - 1
+
+         # loop around to wait for more things to happen
+
+
+File: python-xlib.info,  Node: Selecting Events,  Next: Event Types,  Prev: Getting Events,  Up: Event Handling
+
+11.2 Selecting Events
+=====================
+
+To avoid flooding the clients with events in which they have no
+interest, they must explicitly tell the server which events they are
+interested in.  This is done by providing the `event_mask' attribute
+when creating windows with `Window.create_window' or in calls to
+`Window.change_attributes'.  The value of this attribute is a mask of
+all types of events the client is interested in on that particular
+window.  Whenever the server generates an event for a window which
+matches the clients event mask on that window, the event will be sent
+to the client.
+
+   The following table lists all event masks and the corresponding event
+types and classes.  All event masks and types are integer constants
+defined in the module `Xlib.X'.  Classes have the same name as the
+event type, and are defined in `Xlib.protocol.event'.
+
+*Mask*                     *Type and Class*   *Generated when*
+ButtonMotionMask           MotionNotify       Pointer moved with any or a
+Button1MotionMask                             certain button down
+Button2MotionMask                             
+Button3MotionMask                             
+Button4MotionMask                             
+Button5MotionMask                             
+
+ButtonPressMask            ButtonPress        Pointer button pressed
+ButtonReleaseMask          ButtonRelease      Pointer button released
+
+ColormapChangeMask         ColormapNotify     Colormap changed or installed
+
+EnterWindowMask            EnterNotify        Pointer enters window
+LeaveWindowMask            LeaveNotify        Pointer leaves window
+
+ExposureMask               Expose             Window needs to be redrawn
+                           NoExpose           
+
+FocusChangeMask            FocusIn            Focus changes
+                           FocusOut           
+KeymapStateMask            KeymapNotify       After EnterNotify and FocusIn
+
+KeyPressMask               KeyPress           Key is pressed
+KeyReleaseMask             ReleasePress       Key is released
+
+PointerMotionMask          MotionNotify       Pointer is moved
+
+PropertyChangeMask         PropertyNotify     Window properties change
+
+StructureNotifyMask        CirculateNotify    Window structure changes
+                           ConfigureNotify    
+                           DestroyNotify      
+                           GravityNotify      
+                           MapNotify          
+                           ReparentNotify     
+                           UnmapNotify        
+
+SubstructureNotifyMask     CirculateNotify    Child window structure changes
+                           ConfigureNotify    
+                           CreateNotify       
+                           DestroyNotify      
+                           GravityNotify      
+                           MapNotify          
+                           ReparentNotify     
+                           UnmapNotify        
+
+ResizeRedirectMask         ResizeRequest      Controlling window size change
+
+SubstructureRedirectMask   CirculateRequest   Controlling changes to child
+                           ConfigureRequest   windows
+                           MapRequest         
+
+VisibilityChangeMask       VisibilityNotify   Window is obscured or visible
+
+   There are also some event types which are always sent to the clients,
+regardless of any event masks:
+
+*Type and Class*   *Cut'n'pasting between
+                   windows*
+ClientMessage      Other client sends message
+
+MappingMotify      Keyboard mapping changes
+
+SelectionClear     Cut'n'pasting between
+SelectionNotify    windows
+SelectionRequest   
+
+
+File: python-xlib.info,  Node: Event Types,  Next: Sending Events,  Prev: Selecting Events,  Up: Event Handling
+
+11.3 Event Types
+================
+
+This section describes all event types by listing their fields and basic
+information on when they are generated.  All events are defined in the
+module `Xlib.protocol.event'.  All event types have the following two
+attributes:
+
+ -- Instance Variable of Event: type
+     Stores the X type code of this event.  Type codes are integers in
+     the range 2-127, and are defined with symbolic names in `Xlib.X'.
+     The symbolic names are the same as the event class names, except
+     for the special event `AnyEvent'.
+
+
+ -- Instance Variable of Event: send_event
+     This attribute is normally 0, meaning that the event was generated
+     by the X server.  It is set to 1 if this event was instead sent
+     from another client.
+
+
+   Event object can be created by instantiating the corresponding event
+class, providing all the attributes described for the event as keyword
+arguments.
+
+ -- Event: KeyPress
+ -- Event: KeyRelease
+ -- Event: ButtonPress
+ -- Event: ButtonRelease
+ -- Event: MotionNotify
+     These events are generated when a key or a button logically changes
+     state, or when the pointer logically moves.  In the discussion
+     below, the "source window" is the window that the event occured
+     in.  The event may be generated on some other window than the
+     source window, see XKeyEvent(3X11) for details.  The same man page
+     also describes `MotionNotify'.
+
+      -- Instance Variable of KeyButtonPointerEvent: time
+          The server X time when this event was generated.
+
+      -- Instance Variable of KeyButtonPointerEvent: root
+          The root window which the source window is an inferior of.
+
+      -- Instance Variable of KeyButtonPointerEvent: window
+          The window the event is reported on.
+
+      -- Instance Variable of KeyButtonPointerEvent: same_screen
+          Set to 1 if `window' is on the same screen as `root', 0
+          otherwise.
+
+      -- Instance Variable of KeyButtonPointerEvent: child
+          If the source window is an inferior of `window', `child' is
+          set to the child of `window' that is the ancestor of (or is)
+          the source window.  Otherwise it is set to `X.NONE'.
+
+      -- Instance Variable of KeyButtonPointerEvent: root_x
+      -- Instance Variable of KeyButtonPointerEvent: root_y
+          The pointer coordinates at the time of the event, relative to
+          the root window.
+
+      -- Instance Variable of KeyButtonPointerEvent: event_x
+      -- Instance Variable of KeyButtonPointerEvent: event_y
+          The pointer coordinates at the time of the event, relative to
+          `window'.  If `window' is not on the same screen as `root',
+          these are set to 0.
+
+      -- Instance Variable of KeyButtonPointerEvent: state
+          The logical state of the button and modifier keys just before
+          the event.
+
+      -- Instance Variable of KeyButtonPointerEvent: detail
+          For `KeyPress' and `KeyRelease', this is the keycode of the
+          event key.
+
+          For `ButtonPress' and `ButtonRelease', this is the button of
+          the event.
+
+          For `MotionNotify', this is either `X.NotifyNormal' or
+          `X.NotifyHint'.
+
+
+ -- Event: EnterNotify
+ -- Event: LeaveNotify
+     If pointer motion or window hierarchy change causes the pointer to
+     be in another window than before, these events are generated
+     instead of a `MotionNotify' event.
+
+     The semantics are quite complex, see XCrossingEvent(3X11) for
+     details.
+
+      -- Instance Variable of EnterLeaveEvent: time
+          The server X time when this event was generated.
+
+      -- Instance Variable of EnterLeaveEvent: root
+          The root window of the pointer at the end of this event.
+
+      -- Instance Variable of EnterLeaveEvent: window
+          The window the event is reported for.
+
+      -- Instance Variable of EnterLeaveEvent: child
+          In a `LeaveNotify' event, if a child of `window' contains the
+          initial pointer position, this is set to that child window.
+          In a `EnterNotify' event, if a child of `window' contains the
+          final pointer position, this is set to that child window.
+          Otherwise this is set to `X.NONE'.
+
+      -- Instance Variable of EnterLeaveEvent: root_x
+      -- Instance Variable of EnterLeaveEvent: root_y
+          The final pointer position relative to `root'.
+
+      -- Instance Variable of EnterLeaveEvent: event_x
+      -- Instance Variable of EnterLeaveEvent: event_y
+          The final pointer position relative to `window'.
+
+      -- Instance Variable of EnterLeaveEvent: state
+          The modifier and button state at the time of the event.
+
+      -- Instance Variable of EnterLeaveEvent: mode
+          One of `X.NotifyNormal', `X.NotifyGrab' or `X.NotifyUngrab'.
+
+      -- Instance Variable of EnterLeaveEvent: detail
+          One of `X.NotifyAncestor', `X.NotifyVirtual',
+          `X.NotifyInferior', `X.NotifyNonlinear', or
+          `X.NotifyNonlinearVirtual'.
+
+      -- Instance Variable of EnterLeaveEvent: flags
+          If bit 0 is set, `window' is the focus window or an inferior
+          of it.  If bit 1 is set, `window' is on the same screen as
+          `root'.
+
+
+ -- Event: FocusIn
+ -- Event: FocusOut
+     These events are generated when the focus changes.  This is also
+     very complex events, see XFocusChangeEvent(3X11) for details.
+
+      -- Instance Variable of FocusEvent: window
+          The window the event is generated for.
+
+      -- Instance Variable of FocusEvent: mode
+          One of `X.NotifyNormal', `X.NotifyWhileGrabbed',
+          `X.NotifyGrab', or `X.NotifyUngrab'.
+
+      -- Instance Variable of FocusEvent: detail
+          One of `X.NotifyAncestor', `X.NotifyVirtual',
+          `X.NotifyInferior', `X.NotifyNonlinear',
+          `X.NotifyNonlinearVirtual', `X.NotifyPointer',
+          `X.NotifyPointerRoot', or `X.NONE'.
+
+
+ -- Event: KeymapNotify
+     This event is generated immediately after every `EnterNotify' and
+     `FocusIn'.
+
+      -- Instance Variable of KeymapNotify: data
+          A list of 31 eight-bit integers, as returned by query_keymap.
+
+
+ -- Event: Expose
+     This event is generated when regions of a window has to be
+     redrawn.  The regions are decomposed into a set of rectangles, and
+     an `Expose' event is generated for each rectangle.
+
+      -- Instance Variable of Expose: window
+          The window containing regions to redraw.
+
+      -- Instance Variable of Expose: x
+      -- Instance Variable of Expose: y
+      -- Instance Variable of Expose: width
+      -- Instance Variable of Expose: height
+          The coordinates of the rectangle to redraw.
+
+      -- Instance Variable of Expose: count
+          At least this many more `Expose' events will immediately
+          follow for this window.  If this is the last event, `count'
+          is set to 0.
+
+          This allows a simple application to ignore all `Expose' events
+          with a non-zero `count', and then redraw the entire window
+          when the zero event is received.
+
+
+ -- Event: GraphicsExpose
+ -- Event: NoExpose
+     These events may be generated for drawables when a graphics
+     context with `graphics_exposures' selected is used.  See
+     XGraphicsExposeEvent(3X11) for details.
+
+     Both events have these attributes:
+
+      -- Instance Variable of GraphicsExpose: drawable
+          The drawable of the event.
+
+      -- Instance Variable of GraphicsExpose: major_event
+      -- Instance Variable of GraphicsExpose: minor_event
+          The major and minor number of the request that generated this
+          event.  For the core protocol `major_event' is always 62
+          (CopyArea) or 63 (CopyPlane), and `minor_event' is always 0.
+
+     GraphicsExpose have these additional attributes:
+
+      -- Instance Variable of GraphicsExpose: x
+      -- Instance Variable of GraphicsExpose: y
+      -- Instance Variable of GraphicsExpose: width
+      -- Instance Variable of GraphicsExpose: height
+          The coordinates of the event region.
+
+      -- Instance Variable of GraphicsExpose: count
+          At least this many more `GraphicsExposure' events follows.
+          The last one has `count' set to 0.
+
+
+ -- Event: VisibilityNotify
+     These events are generated when the visibility of a viewable
+     window is changed.  See XVisibilityNotifyEvent(3X11).
+
+      -- Instance Variable of VisibiltyNotify: window
+          The window of the event.
+
+      -- Instance Variable of VisibiltyNotify: state
+          One of `X.VisibilityUnobscured',
+          `X.VisibilityPartiallyObscured', or
+          `X.VisibilityFullyObscured'.
+
+
+ -- Event: CreateNotify
+     This event is generated when a window is created.
+     `X.SubstructureNotifyMask' must be selected on the parent of the
+     new window to receive this event.
+
+      -- Instance Variable of CreateNotify: parent
+          The parent of the new window.
+
+      -- Instance Variable of CreateNotify: window
+          The new window.
+
+      -- Instance Variable of CreateNotify: x
+      -- Instance Variable of CreateNotify: y
+      -- Instance Variable of CreateNotify: width
+      -- Instance Variable of CreateNotify: height
+      -- Instance Variable of CreateNotify: border_width
+      -- Instance Variable of CreateNotify: override
+          These values are fetched from the `create_window' call.
+
+
+ -- Event: DestroyNotify
+     This event is generated when a window is destroyed.
+
+      -- Instance Variable of DestroyNotify: event
+          The window that the event is generated for.
+
+      -- Instance Variable of DestroyNotify: window
+          The window that was destroyed.
+
+
+ -- Event: UnmapNotify
+     This event is generated when a window is unmapped.
+
+      -- Instance Variable of UnmapNotify: event
+          The window that the event is generated for.
+
+      -- Instance Variable of UnmapNotify: window
+          The window that was unmapped.
+
+      -- Instance Variable of Event: from_configure
+          This is true if `window' was unmapped because its parent was
+          resized and `window' had win-gravity `X.UnmapGravity'.
+
+
+ -- Event: MapNotify
+     This event is generated when a window is mapped.
+
+      -- Instance Variable of MapNotify: event
+          The window that the event is generated for.
+
+      -- Instance Variable of MapNotify: window
+          The window that was mapped.
+
+      -- Instance Variable of Event: override
+          This is set from the corresponding window attribute.
+
+ -- Event: MapRequest
+     This event is reported to the client that has set
+     `X.SubstructureRedirectMask' on a window, and an unmapped child of
+     that window attempts to be mapped by some other client, unless the
+     child has override-redirect set.
+
+      -- Instance Variable of MapRequest: parent
+          The parent window.
+
+      -- Instance Variable of MapRequest: window
+          The child window that attempts to be mapped.
+
+
+ -- Event: ReparentNotify
+     This event is reported to clients selecting
+     `X.SubstructureNotifyMask' on either the old or the new parent and
+     to clients selecting `X.StructureNotifyMask' on the reparented
+     window.
+
+      -- Instance Variable of ReparentNotify: event
+          The window the event is generated for.
+
+      -- Instance Variable of ReparentNotify: window
+          The reparented window.
+
+      -- Instance Variable of ReparentNotify: parent
+          The new parent window.
+
+      -- Instance Variable of ReparentNotify: x
+      -- Instance Variable of ReparentNotify: y
+          The coordinates of the upper-left outer corner of `window' in
+          `parent'.
+
+      -- Instance Variable of ReparentNotify: override
+          This is set from the corresponding attribute on `window'.
+
+
+ -- Event: ConfigureNotify
+     This event is generated when a configure request actually changes
+     the state of the window.
+
+      -- Instance Variable of ConfigureNotify: event
+          The window that the event is generated for.
+
+      -- Instance Variable of ConfigureNotify: window
+          The window that has been changed.
+
+      -- Instance Variable of ConfigureNotify: x
+      -- Instance Variable of ConfigureNotify: y
+      -- Instance Variable of ConfigureNotify: width
+      -- Instance Variable of ConfigureNotify: height
+      -- Instance Variable of ConfigureNotify: border_width
+          The new coordinate and geometry of `window'.
+
+      -- Instance Variable of ConfigureNotify: above_sibling
+          This is `X.NONE' if this window is at the bottom of the window
+          stack.  Otherwise it is the sibling window that `window' is
+          immediately above.
+
+      -- Instance Variable of ConfigureNotify: override
+          This is set from the corresponding attribute on `window'.
+
+
+ -- Event: ConfigureRequest
+     This event is reported to the client that has set
+     `X.SubstructureRedirectMask' on the parent of a window that another
+     client attempts to configure, unless the window has
+     override-redirect set.
+
+      -- Instance Variable of ConfigureRequest: parent
+          The parent of the window being configured.
+
+      -- Instance Variable of ConfigureRequest: window
+          The window being configured.
+
+      -- Instance Variable of ConfigureRequest: value_mask
+          A bitmask indicating which values that the caller tries to
+          change.
+
+      -- Instance Variable of ConfigureRequest: x
+      -- Instance Variable of ConfigureRequest: y
+      -- Instance Variable of ConfigureRequest: width
+      -- Instance Variable of ConfigureRequest: height
+      -- Instance Variable of ConfigureRequest: border_width
+          The window geometry in the configure call.  If `X.CWX',
+          `X.CWY', `X.CWWidth', `X.CWHeight', or `X.CWBorderWidth' is
+          set in `value_mask', the corresponding attributes contains
+          the new value as given in the configure call, otherwise the
+          current value is used.
+
+      -- Instance Variable of ConfigureRequest: stack_mode
+          If `X.CWStackMode' is set in `value_mask', this is the stack
+          mode specified in the configure call, one of `X.Above',
+          `X.Below', `X.TopIf', `X.BottomIf', or `X.Opposite'.  If the
+          flag is not set, this is set to `X.Above'.
+
+      -- Instance Variable of ConfigureRequest: sibling
+          If `X.CWSibling' is set in `value_mask', this is the sibling
+          window specified in the configure call.  If the flag is not
+          set, this is set to `X.NONE'.
+
+
+ -- Event: GravityNotify
+     This event is generated when a window is moved because its
+     parent's size has changed.
+
+      -- Instance Variable of GravityNotify: event
+          The window the event is generated for.
+
+      -- Instance Variable of GravityNotify: window
+          The window that moved.
+
+      -- Instance Variable of GravityNotify: x
+      -- Instance Variable of GravityNotify: y
+          The new coordinates of the upper-left outer corner of
+          `window'.
+
+
+ -- Event: ResizeRequest
+     This is reported to the client selecting `X.ResizeRedirectMask' on
+     a window, and another client attempts to resize it.
+
+      -- Instance Variable of ResizeRedirect: window
+          The window that was attempted to be resized.
+
+      -- Instance Variable of ResizeRedirect: width
+      -- Instance Variable of ResizeRedirect: height
+          The requested size of the window, excluding the border.
+
+
+ -- Event: CirculateNotify
+     This event is generated when a window is restacked caused by a
+     circulate call.
+
+      -- Instance Variable of Event: event
+          The window the event is reported on.
+
+      -- Instance Variable of Event: window
+          The window that has been restacked.
+
+      -- Instance Variable of Event: place
+          Either `X.PlaceOnTop' or `X.PlaceOnBottom'.
+
+
+ -- Event: CirculateRequest
+     This event is reported to the client that has set
+     `X.SubstructureRedirectMask' on the parent of a window that needs
+     to be restacked as a result of a circulate call on the parent.
+
+      -- Instance Variable of CirculateRequest: parent
+          The parent window.
+
+      -- Instance Variable of CirculateRequest: window
+          The window that should be restacked.
+
+      -- Instance Variable of CirculateRequest: place
+          Where `window' should be placed, either `X.PlaceOnTop' or
+          `X.PlaceOnBottom'.
+
+
+ -- Event: PropertyNotify
+     This event is generated when a property on a window is changed.
+
+      -- Instance Variable of Event: window
+          The window which the property is or was set on.
+
+      -- Instance Variable of Event: atom
+          The atom identifying the property.
+
+      -- Instance Variable of Event: time
+          The server X time when the property was changed.
+
+      -- Instance Variable of Event: state
+          What was changed, either `X.PropertyNewValue' or
+          `X.PropertyDelete'.
+
+
+ -- Event: SelectionClear
+     This event is reported to the owner of a selection when it has
+     gotten a new owner.
+
+      -- Instance Variable of SelectionClear: window
+          The owner window of the selection.
+
+      -- Instance Variable of SelectionClear: atom
+          The selection atom.
+
+      -- Instance Variable of SelectionClear: time
+          The server X time when the selection was last changed.
+
+
+ -- Event: SelectionRequest
+     This event is reported to the owner of a selection when a client
+     requests it by calling convert_selection.
+
+      -- Instance Variable of SelectionRequest: owner
+          The owner window of the selection.
+
+      -- Instance Variable of SelectionRequest: requestor
+      -- Instance Variable of SelectionRequest: selection
+      -- Instance Variable of SelectionRequest: target
+      -- Instance Variable of SelectionRequest: property
+      -- Instance Variable of SelectionRequest: time
+          These attributes are fetched from the convert_selection call.
+
+
+ -- Event: SelectionNotify
+     This event is generated by the server if there are no owner of a
+     selection when convert_selection is called.  If there is an owner,
+     it should send this event to the requestor when the selection has
+     been converted.
+
+      -- Instance Variable of SelectionNotify: requestor
+      -- Instance Variable of SelectionNotify: selection
+      -- Instance Variable of SelectionNotify: target
+      -- Instance Variable of SelectionNotify: property
+      -- Instance Variable of SelectionNotify: time
+          See XSelectionEvent(3X11).
+
+
+ -- Event: ColormapNotify
+     This event is generated when the colormap attribute of a window is
+     set, or when a window's colormap is installed or uninstalled.
+
+      -- Instance Variable of ColormapNotify: window
+          The affected window.
+
+      -- Instance Variable of ColormapNotify: colormap
+          The colormap of the window, or `X.NONE'.
+
+      -- Instance Variable of ColormapNotify: new
+          Set to 1 if the colormap attribute has been set, 0 when the
+          colormap is installed or uninstalled.
+
+      -- Instance Variable of ColormapNotify: state
+          Indicates whether the colormap is installed or not, either
+          `X.ColormapInstalled' or `X.ColormapUninstalled'.
+
+
+ -- Event: MappingNotify
+     This event is sent to all clients, without any event mask having
+     to be set.  It is sent when the keyboard or pointer mapping is
+     changed.
+
+      -- Instance Variable of MappingNotify: request
+          The mapping that has changed, one of `X.MappingModifier',
+          `X.MappingKeyboard' or `X.Pointer'.
+
+      -- Instance Variable of MappingNotify: first_keycode
+      -- Instance Variable of MappingNotify: count
+          If the keyboard mapping has changed, this is the range of
+          modified keycodes.
+
+
+ -- Event: ClientMessage
+     This event is only generated by clients using send_event.
+
+      -- Instance Variable of ClientMessage: window
+          The destination window of the event.
+
+      -- Instance Variable of ClientMessage: client_type
+          The type of message, an atom.
+
+      -- Instance Variable of ClientMessage: data
+          The message data as a tuple: `(format, mdata)'
+
+          Format must be one of 8, 16, or 32.  mdata must either be a
+          string of exactly 20 characters, or a list of exactly 20, 10
+          or 5 integers depending of the format.
+
+
+ -- Event: AnyEvent
+     This event is represents an event the Xlib does not recognise.
+     These should never be returned by `Display.next_event()', but they
+     might be useful for sending special events to other clients.
+
+      -- Instance Variable of AnyEvent: detail
+          An eight-bit integer.
+
+      -- Instance Variable of AnyEvent: data
+          A string of exactly 28 characters.
+
+
+
+File: python-xlib.info,  Node: Sending Events,  Prev: Event Types,  Up: Event Handling
+
+11.4 Sending Events
+===================
+
+Clients can send events to each other.  Most often these are
+general-purpose `ClientMessage' events, but any event type can be sent.
+
+   To send an event, an event object must be created.  This is done by
+instantiating an event class, providing values to all its fields as
+keyword parameters.  The event is then sent with the `send_event()'
+method:
+
+ -- Method on Window: send_event ( event, event_mask = 0, propagate =
+          0, onerror = None )
+     Send EVENT to this window.
+
+     If EVENT_MASK is 0, the event is sent to the client that created
+     the window.  Otherwise the event is sent to every client selecting
+     any of the event types in EVENT_MASK.
+
+     If no clients have selected any of the event types and PROPAGATE
+     is true, the X server will search for an ancestor of this window on
+     which some client has selected any of the event types.  For
+     details, see XSendEvent(3X11).
+
+
+ -- Method on Display: send_event ( destination, event, event_mask = 0,
+          propagate = 0, onerror = None )
+     Send EVENT to DESTINATION, which can either be a `Window' object
+     or a constant:  If `X.PointerWindow' is specified, send the event
+     to the window the pointer is in. If `X.InputFocus' is specified
+     and the focus window contains the pointer, send the event to the
+     window that the pointer is in.  Otherwise, send the event to the
+     focus window.
+
+
+   As an example, this creates and sends a `ClientMessage' event of the
+client specific type `HELLO_WORLD' (an atom), to the window `dest' and
+with the 8-bitformat value `"G'day, mate"' (which must be exactly
+twenty bytes):
+
+     cm_event = Xlib.protocol.event.ClientMessage(
+         window = dest,
+         client_type = HELLO_WORLD,
+         data = (8, "G'day mate\0\0\0\0\0\0\0\0\0\0"))
+
+     dest.send_event(cm_event)
+
+
+File: python-xlib.info,  Node: X Objects,  Prev: Event Handling,  Up: Top
+
+12 X Objects
+************
+
+All X operations are performed by invoking object methods.
+
+   The objects and their methods are listed in the following nodes,
+however with no detailed explanations.  The reader are referred to
+other sources of X documentation for details, e.g. the X protocol
+specification, the C Xlib documentation or man pages.  A vast
+collection of X documentation links can be found at
+`http://www.rahul.net/kenton/xsites.html'.
+
+   Methods returning a single value will return that directly.
+Otherwise, an object containing attributes for each of the result
+values is returned.
+
+   Methods returning some value will raise an exception on error.
+Methods which does not return any value have instead an `on_error'
+parameter, which can be used to specify an error handler.
+
+* Menu:
+
+* Display::       Methods on Display objects.
+* Resource::      Methods common to all the following resource objects.
+* Colormap::      Methods on Colormap objects.
+* Cursor::        Methods on Cursor objects.
+* Drawable::      Methods common to Window and Pixmap objects.
+* Window::        Methods on Window objects.
+* Pixmap::        Methods on Pixmap objects.
+* Fontable::      Methods common to GC and Font objects.
+* GC::            Methods on GC objects.
+* Font::          Methods on Font objects.
+
+
+File: python-xlib.info,  Node: Display,  Next: Resource,  Up: X Objects
+
+12.1 Display
+============
+
+Display information retrieval methods:
+
+ -- Method on Display: get_display_name ( )
+     Returns the name used to connect to the server, either provided
+     when creating the `Display' object, or fetched from the
+     environmental variable `$DISPLAY'.
+
+
+ -- Method on Display: fileno ( )
+     Returns the file descriptor number of the underlying socket.  This
+     method is provided to allow `Display' objects to be passed
+     `select.select()'.
+
+
+ -- Method on Display: close ( )
+     Close the display, freeing the resources that it holds.
+
+
+ -- Method on Display: set_error_handler ( handler )
+     Set the default error handler which will be called for all
+     unhandled errors.  HANDLER should take two arguments as a normal
+     request error handler, but the second argument (the request) will
+     be None.
+
+     *Note Error Handling::.
+
+
+ -- Method on Display: flush ( )
+     Flush the request queue, building and sending the queued requests.
+     This can be necessary in applications that never wait for events,
+     and in threaded applications.
+
+
+ -- Method on Display: sync ( )
+     Flush the queue and wait until the server has processed all the
+     queued requests.  Use this e.g. when it is important that errors
+     caused by a certain request is trapped.
+
+
+ -- Method on Display: next_event ( )
+     Return the next event.  If there are no events queued, it will
+     block until the next event is fetched from the server.
+
+
+ -- Method on Display: pending_events ( )
+     Return the number of events queued, i.e. the number of times that
+     `Display.next_event()' can be called without blocking.
+
+
+ -- Method on Display: has_extension ( extension )
+     Check if both the server and the client library support the X
+     extension named EXTENSION.
+
+
+ -- Method on Display: create_resource_object ( type, id )
+     Create a resource object of TYPE for the integer ID.  TYPE should
+     be one of the following strings:
+
+    `resource'
+    `drawable'
+    `window'
+    `pixmap'
+    `fontable'
+    `font'
+    `gc'
+    `colormap'
+    `cursor'
+
+     This function can be used when a resource ID has been fetched e.g.
+     from an resource or a command line argument.  Resource objects
+     should never be created by instantiating the appropriate class
+     directly, since any X extensions dynamically added by the library
+     will not be available.
+
+
+ -- Method on Display: screen ( sno = None )
+     Return the information about screen number SNO, or the default
+     screen if SNO is `None'.
+
+     The return object has the following attributes:
+
+    `root'
+          The screen root window.
+
+    `default_colormap'
+          The default colormap for the root window and its children.
+
+    `white_pixel'
+    `black_pixel'
+          The pixel values for white and black, respectively, in the
+          default colormap.
+
+    `current_input_mask'
+          The event mask of the root window at the time the connection
+          was set up.
+
+    `width_in_pixels'
+    `height_in_pixels'
+          The size of the root window in pixels, i.e. the size of the
+          entire screen.
+
+    `width_in_mms'
+    `height_in_mms'
+          The physical size of the screen, in millimeters.
+
+    `min_installed_maps'
+    `max_installed_maps'
+          The minimum and maximum number of colormaps that can be
+          installed at the same time.
+
+    `root_visual'
+          The visual type of the root window.
+
+    `backing_store'
+          Whether the screen supports backing store, one of the values
+          `X.WhenMapped', `X.NotUseful', or `X.Always'.
+
+    `save_unders'
+          True if the screen supports save unders.
+
+    `root_depth'
+          The depth of the root window.
+
+    `allowed_depths'
+          A list of the pixmap and windows depths that this screen
+          supports.  The list items have the following attributes:
+
+         `depth'
+               This depth is supported by the screen.
+
+         `visuals'
+               A list of visual types that is valid for this depth.  If
+               this list is empty, this depth is only valid for pixmaps
+               and not for windows.  The list items have the following
+               attributes:
+
+              `visual_id'
+                    The ID of this visual.
+
+              `visual_class'
+                    One of `X.StaticGrey', `X.StaticColor',
+                    `X.TrueColor', `X.GrayScale', `X.PseudoColor', or
+                    `X.DirectColor'.
+
+              `bits_per_rgb_value'
+                    The number of bits used to represent an entire
+                    RGB-value, allowing a total of
+                    `2^bits_per_rgb_value' distinct colors.
+
+              `colormap_entries'
+                    The number of free entries in a newly created
+                    colormap.
+
+              `red_mask'
+              `blue_mask'
+              `green_mask'
+                    Bitmasks selecting the three color components from
+                    the entire RGB value.
+
+
+
+
+
+ -- Method on Display: screen_count ( )
+     Return the total number of screens on the display.
+
+
+ -- Method on Display: get_default_screen ( )
+     Return the number of the default screen, extracted from the display
+     name.
+
+
+ -- Method on Display: keycode_to_keysym ( keycode, index )
+     Convert a KEYCODE to a keysym, looking in entry INDEX.  Normally
+     index 0 is unshifted, 1 is shifted, 2 is alt grid, and 3 is
+     shift+alt grid.  If that key entry is not bound, `X.NoSymbol' is
+     returned.
+
+
+ -- Method on Display: keysym_to_keycode ( keysym )
+     Look up the primary keycode that is bound to KEYSYM.  If several
+     keycodes are found, the one with the lowest index and lowest code
+     is returned.  If KEYSYM is not bound to any key, 0 is returned.
+
+
+ -- Method on Display: keysym_to_keycodes ( keysym )
+     Look up all the keycodes that is bound to `keysym'.  A list of
+     tuples `(keycode, index)' is returned, sorted primarily on the
+     lowest index and secondarily on the lowest keycode.
+
+
+ -- Method on Display: refresh_keyboard_mapping ( evt )
+     This method should be called once when a `MappingNotify' event is
+     received, to update the keymap cache.  EVT should be the event
+     object.
+
+
+ -- Method on Display: lookup_string ( keysym )
+     Attempt to convert KEYSYM into a single character or a string.  If
+     no translation is found, `None' is returned.
+
+
+ -- Method on Display: rebind_string ( keysym, newstring )
+     Set the string representation of `keysym' to `newstring', so that
+     it will be returned by `Display.lookup_string()'.
+
+
+   X requests methods:
+
+ -- Method on Display: intern_atom ( name, only_if_exists = 0 )
+     Intern the string NAME, returning its atom number.  If
+     ONLY_IF_EXISTS is true and the atom does not already exist, it
+     will not be created and `X.NONE' is returned.
+
+
+ -- Method on Display: get_atom_name ( atom )
+     Look up the name of ATOM, returning it as a string.  Will raise
+     `BadAtom' if ATOM does not exist.
+
+
+ -- Method on Display: get_selection_owner ( selection )
+     Return the window that owns SELECTION (an atom), or `X.NONE' if
+     there is no owner for the selection.  Can raise `BadAtom'.
+
+
+ -- Method on Display: send_event ( destination, event, event_mask = 0,
+          propagate = 0, onerror = None )
+     Send a synthetic event to the window `destination' which can be a
+     window object, or `X.PointerWindow' or `X.InputFocus'.  `event' is
+     the event object to send, instantiated from one of the classes in
+     `protocol.events'.  See XSendEvent(3X11) for details.
+
+     There is also a `Window.send_event()' method.
+
+
+ -- Method on Display: ungrab_pointer ( time, onerror = None )
+     Release a grabbed pointer and any queued events.  See
+     XUngrabPointer(3X11).
+
+
+ -- Method on Display: change_active_pointer_grab ( event_mask, cursor,
+          time, onerror = None )
+     Change the dynamic parameters of a pointer grab.  See
+     XChangeActivePointerGrab(3X11).
+
+
+ -- Method on Display: ungrab_keyboard ( time, onerror = None )
+     Ungrab a grabbed keyboard and any queued events.  See
+     XUngrabKeyboard(3X11).
+
+
+ -- Method on Display: allow_events ( mode, time, onerror = None )
+     Release some queued events.  MODE should be one of
+     `X.AsyncPointer', `X.SyncPointer', `X.AsyncKeyboard',
+     `X.SyncKeyboard', `X.ReplayPointer', `X.ReplayKeyboard',
+     `X.AsyncBoth', or `X.SyncBoth'.  TIME should be a timestamp or
+     `X.CurrentTime'.
+
+
+ -- Method on Display: grab_server ( onerror = None )
+     Disable processing of requests on all other client connections
+     until the server is ungrabbed.  Server grabbing should be avoided
+     as much as possible.
+
+
+ -- Method on Display: ungrab_server ( onerror = None )
+     Release the server if it was previously grabbed by this client.
+
+
+ -- Method on Display: warp_pointer ( x, y, src_window = X.NONE,
+          src_x = 0, src_y = 0, src_width = 0, src_height = 0,
+          onerror = None )
+     Move the pointer relative its current position by the offsets (X,
+     Y).  However, if SRC_WINDOW is a window the pointer is only moved
+     if the specified rectangle in SRC_WINDOW contains it.  If
+     SRC_WIDTH is 0 it will be replaced with the width of SRC_WINDOW -
+     SRC_X.  SRC_HEIGHT is treated in a similar way.
+
+     To move the pointer to absolute coordinates, use
+     `Window.warp_pointer()'.
+
+
+ -- Method on Display: set_input_focus ( focus, revert_to, time,
+          onerror = None )
+     Set input focus to FOCUS, which should be a window,
+     `X.PointerRoot' or `X.NONE'.  REVERT_TO specifies where the focus
+     reverts to if the focused window becomes not visible, and should
+     be `X.RevertToParent', `RevertToPointerRoot', or `RevertToNone'.
+     See XSetInputFocus(3X11) for details.
+
+     There is also a `Window.set_input_focus()'.
+
+
+ -- Method on Display: get_input_focus ( )
+     Return an object with the following attributes:
+
+    `focus'
+          The window which currently holds the input focus, `X.NONE' or
+          `X.PointerRoot'.
+
+    `revert_to'
+          Where the focus will revert, one of `X.RevertToParent',
+          `RevertToPointerRoot', or `RevertToNone'.
+
+
+
+ -- Method on Display: query_keymap ( )
+     Return a bit vector for the logical state of the keyboard, where
+     each bit set to 1 indicates that the corresponding key is
+     currently pressed down.  The vector is represented as a list of 32
+     integers.  List item N contains the bits for keys 8N to 8N + 7
+     with the least significant bit in the byte representing key 8N.
+
+
+ -- Method on Display: open_font ( name )
+     Open the font identifed by the pattern NAME and return its font
+     object.  If NAME does not match any font, `None' is returned.
+
+
+ -- Method on Display: list_fonts ( pattern, max_names )
+     Return a list of font names matching PATTERN.  No more than
+     MAX_NAMES will be returned.
+
+
+ -- Method on Display: list_fonts_with_info ( pattern, max_names )
+     Return a list of fonts matching PATTERN.  No more than MAX_NAMES
+     will be returned.  Each list item represents one font and has the
+     following properties:
+
+    `name'
+          The name of the font.
+
+    `min_bounds'
+    `max_bounds'
+    `min_char_or_byte2'
+    `max_char_or_byte2'
+    `default_char'
+    `draw_direction'
+    `min_byte1'
+    `max_byte1'
+    `all_chars_exist'
+    `font_ascent'
+    `font_descent'
+    `replies_hint'
+          See the descripton of XFontStruct in XGetFontProperty(3X11)
+          for details on these values.
+
+    `properties'
+          A list of properties.  Each entry has two attributes:
+
+         `name'
+               The atom identifying this property.
+
+         `value'
+               A 32-bit unsigned value.
+
+
+
+
+ -- Method on Display: set_font_path ( path, onerror = None )
+     Set the font path to PATH, which should be a list of strings.  If
+     PATH is empty, the default font path of the server will be
+     restored.
+
+
+ -- Method on Display: get_font_path ( )
+     Return the current font path as a list of strings.
+
+
+ -- Method on Display: query_extension ( name )
+     Ask the server if it supports the extension NAME.  If it is
+     supported an object with the following attributes is returned:
+
+    `major_opcode'
+          The major opcode that the requests of this extension uses.
+
+    `first_event'
+          The base event code if the extension have additional events,
+          or 0.
+
+    `first_error'
+          The base error code if the extension have additional errors,
+          or 0.
+
+
+     If the extension is not supported, `None' is returned.
+
+
+ -- Method on Display: list_extensions ( )
+     Return a list of all the extensions provided by the server.
+
+
+ -- Method on Display: change_keyboard_mapping ( first_keycode,
+          keysyms, onerror = None )
+     Modify the keyboard mapping, starting with FIRST_KEYCODE.  KEYSYMS
+     is a list of tuples of keysyms.  `keysyms[n][i]' will be assigned
+     to keycode `first_keycode+n' at index `i'.
+
+
+ -- Method on Display: get_keyboard_mapping ( first_keycode, count )
+     Return the current keyboard mapping as a list of tuples, starting
+     at FIRST_KEYCOUNT and no more than COUNT.
+
+
+ -- Method on Display: change_keyboard_control ( onerror = None, **keys
+          )
+     Change the parameters provided as keyword arguments:
+
+    `key_click_percent'
+          The volume of key clicks between 0 (off) and 100 (load).  -1
+          will restore default setting.
+
+    `bell_percent'
+          The base volume of the bell, coded as above.
+
+    `bell_pitch'
+          The pitch of the bell in Hz, -1 restores the default.
+
+    `bell_duration'
+          The duration of the bell in milliseconds, -1 restores the
+          default.
+
+    `led'
+    `led_mode'
+          `led_mode' should be `X.LedModeOff' or `X.LedModeOn'.  If
+          `led' is provided, it should be a 32-bit mask listing the
+          LEDs that should change.  If `led' is not provided, all LEDs
+          are changed.
+
+    `key'
+    `auto_repeat_mode'
+          `auto_repeat_mode' should be one of `X.AutoRepeatModeOff',
+          `X.AutoRepeatModeOn', or `X.AutoRepeatModeDefault'.  If `key'
+          is provided, that key will be modified, otherwise the global
+          state for the entire keyboard will be modified.
+
+
+
+ -- Method on Display: get_keyboard_control ( )
+     Return an object with the following attributes:
+
+    `global_auto_repeat'
+          `X.AutoRepeatModeOn' or `X.AutoRepeatModeOff'.
+
+    `auto_repeats'
+          A list of 32 integers.  List item N contains the bits for
+          keys 8N to 8N + 7 with the least significant bit in the byte
+          representing key 8N.  If a bit is on, autorepeat is enabled
+          for the corresponding key.
+
+    `led_mask'
+          A 32-bit mask indicating which LEDs are on.
+
+    `key_click_percent'
+          The volume of key click, from 0 to 100.
+
+    `bell_percent'
+    `bell_pitch'
+    `bell_duration'
+          The volume, pitch and duration of the bell.
+
+
+
+ -- Method on Display: bell ( percent = 0, onerror = None )
+     Ring the bell at the volume PERCENT which is relative the base
+     volume.  See XBell(3X11).
+
+
+ -- Method on Display: change_pointer_control ( accel = None,
+          threshold = None, onerror = None )
+     To change the pointer acceleration, set ACCEL to a tuple `(num,
+     denum)'.  The pointer will then move `num/denum' times the normal
+     speed if it moves beyond the threshold number of pixels at once.
+     To change the threshold, set it to the number of pixels.  -1
+     restores the default.
+
+
+ -- Method on Display: get_pointer_control ( )
+     Return an object with the following attributes:
+
+    `accel_num'
+    `accel_denom'
+          The acceleration as numerator/denumerator.
+
+    `threshold'
+          The number of pixels the pointer must move before the
+          acceleration kicks in.
+
+
+
+ -- Method on Display: set_screen_saver ( timeout, interval,
+          prefer_blank, allow_exposures, onerror = None )
+     See XSetScreenSaver(3X11).
+
+
+ -- Method on Display: get_screen_saver ( )
+     Return an object with the attributes `timeout', `interval',
+     `prefer_blanking', `allow_exposures'.  See XGetScreenSaver(3X11)
+     for details.
+
+
+ -- Method on Display: change_hosts ( mode, host_family, host,
+          onerror = None )
+     MODE is either `X.HostInsert' or `X.HostDelete'.  HOST_FAMILY is
+     one of `X.FamilyInternet', `X.FamilyDECnet' or `X.FamilyChaos'.
+
+     HOST is a list of bytes.  For the Internet family, it should be
+     the four bytes of an IPv4 address.
+
+
+ -- Method on Display: list_hosts ( )
+     Return an object with the following attributes:
+
+    `mode'
+          `X.EnableAccess' if the access control list is used,
+          `X.DisableAccess' otherwise.
+
+    `hosts'
+          The hosts on the access list.  Each entry has the following
+          attributes:
+
+         `family'
+               `X.FamilyInternet', `X.FamilyDECnet', or `X.FamilyChaos'.
+
+         `name'
+               A list of byte values, the coding depends on `family'.
+               For the Internet family, it is the 4 bytes of an IPv4
+               address.
+
+
+
+
+ -- Method on Display: set_access_control ( mode, onerror = None )
+     Enable use of access control lists at connection setup if MODE is
+     `X.EnableAccess', disable if it is `X.DisableAccess'.
+
+
+ -- Method on Display: set_close_down_mode ( mode, onerror = None )
+     Control what will happen with the client's resources at connection
+     close.  The default is `X.DestroyAll', the other values are
+     `X.RetainPermanent' and `X.RetainTemporary'.
+
+
+ -- Method on Display: force_screen_saver ( mode, onerror = None )
+     If MODE is `X.ScreenSaverActive' the screen saver is activated.
+     If it is `X.ScreenSaverReset', the screen saver is deactivated as
+     if device input had been received.
+
+
+ -- Method on Display: set_pointer_mapping ( map )
+     Set the mapping of the pointer buttons.  MAP is a list of logical
+     button numbers.  MAP must be of the same length as the list
+     returned by `Display.get_pointer_mapping()'.
+
+     `map[n]' sets the logical number for the physical button `n+1'.
+     Logical number 0 disables the button.  Two physical buttons cannot
+     be mapped to the same logical number.
+
+     If one of the buttons to be altered are logically in the down
+     state, `X.MappingBusy' is returned and the mapping is not changed.
+     Otherwise the mapping is changed and `X.MappingSuccess' is
+     returned.
+
+
+ -- Method on Display: get_pointer_mapping ( )
+     Return a list of the pointer button mappings.  Entry N in the list
+     sets the logical button number for the physical button N+1.
+
+
+ -- Method on Display: set_modifier_mapping ( keycodes )
+     Set the keycodes for the eight modifiers `X.Shift', `X.Lock',
+     `X.Control', `X.Mod1', `X.Mod2', `X.Mod3', `X.Mod4' and `X.Mod5'.
+     KEYCODES should be a eight-element list where each entry is a list
+     of the keycodes that should be bound to that modifier.
+
+     If any changed key is logically in the down state, `X.MappingBusy'
+     is returned and the mapping is not changed.  If the mapping
+     violates some server restriction, `X.MappingFailed' is returned.
+     Otherwise the mapping is changed and `X.MappingSuccess' is
+     returned.
+
+
+ -- Method on Display: get_modifier_mapping ( )
+     Return a list of eight lists, one for each modifier.  The list can
+     be indexed using `X.ShiftMapIndex', `X.Mod1MapIndex', and so on.
+     The sublists list the keycodes bound to that modifier.
+
+
+ -- Method on Display: no_operation ( onerror = None )
+     Do nothing but send a request to the server.
+
+
+
+File: python-xlib.info,  Node: Resource,  Next: Colormap,  Prev: Display,  Up: X Objects
+
+12.2 Resource
+=============
+
+All resource objects can be compared and hashed, so they can be used as
+mapping indices.  They also have this method:
+
+ -- Method on Resource: kill_client ( onerror = None )
+
+
+File: python-xlib.info,  Node: Colormap,  Next: Cursor,  Prev: Resource,  Up: X Objects
+
+12.3 Colormap
+=============
+
+*Note Resource::, for additional methods on `Colormap' objects.
+
+ -- Method on Colormap: free ( onerror = None )
+
+ -- Method on Colormap: copy_colormap_and_free ( scr_cmap )
+     Returns Colormap.
+
+ -- Method on Colormap: install_colormap ( onerror = None )
+
+ -- Method on Colormap: uninstall_colormap ( onerror = None )
+
+ -- Method on Colormap: alloc_color ( red, green, blue )
+
+ -- Method on Colormap: alloc_named_color ( name )
+     Returns None or  Card32('pixel'), Card16('exact_red'),
+     Card16('exact_green'), Card16('exact_blue'), Card16('screen_red'),
+     Card16('screen_green'), Card16('screen_blue'),
+
+ -- Method on Colormap: alloc_color_cells ( contiguous, colors, planes )
+     Returns  List('pixels', Card32Obj), List('masks', Card32Obj),
+
+ -- Method on Colormap: alloc_color_planes ( contiguous, colors, red,
+          green, blue )
+     Returns  Card32('red_mask'), Card32('green_mask'),
+     Card32('blue_mask'), List('pixels', Card32Obj),
+
+ -- Method on Colormap: free_colors ( pixels, plane_mask, onerror =
+          None )
+
+ -- Method on Colormap: store_colors ( items, onerror = None )
+
+ -- Method on Colormap: store_named_color ( name, pixel, flags, onerror
+          = None )
+
+ -- Method on Colormap: query_colors ( pixels )
+     Returns List('colors', structs.RGB),
+
+ -- Method on Colormap: lookup_color ( name )
+     Returns  Card16('exact_red'), Card16('exact_green'),
+     Card16('exact_blue'), Card16('screen_red'), Card16('screen_green'),
+     Card16('screen_blue'),
+
+
+File: python-xlib.info,  Node: Cursor,  Next: Drawable,  Prev: Colormap,  Up: X Objects
+
+12.4 Cursor
+===========
+
+*Note Resource::, for additional methods on `Cursor' objects.
+
+ -- Method on Cursor: free ( onerror = None )
+
+ -- Method on Cursor: recolor ( (fore_red, fore_green, fore_blue),
+          (back_red, back_green, back_blue), onerror = None )
+
+
+File: python-xlib.info,  Node: Drawable,  Next: Window,  Prev: Cursor,  Up: X Objects
+
+12.5 Drawable
+=============
+
+`Drawable' is a base class of `Window' and `Pixmap' objects.  *Note
+Window::, and *Note Pixmap::.
+
+   *Note Resource::, for additional methods.
+
+ -- Method on Drawable: get_geometry ( )
+     Returns Window('root'), Int16('x'), Int16('y'), Card16('width'),
+     Card16('height'), Card16('border_width'),
+
+ -- Method on Drawable: create_pixmap ( width, height, depth )
+     Returns Pixmap.
+
+ -- Method on Drawable: create_gc ( **keys )
+     Returns GC.
+
+ -- Method on Drawable: copy_area ( gc, src_drawable, src_x, src_y,
+          width, height, dst_x, dst_y, onerror = None )
+
+ -- Method on Drawable: copy_plane ( gc, src_drawable, src_x, src_y,
+          width, height, dst_x, dst_y, bit_plane, onerror = None )
+
+ -- Method on Drawable: poly_point ( gc, coord_mode, points, onerror =
+          None )
+   request.PolyPoint(display = self.display, onerror = onerror,
+coord_mode = coord_mode, drawable = self.id, gc = gc, points = points)
+
+ -- Method on Drawable: point ( gc, x, y, onerror = None )
+
+ -- Method on Drawable: poly_line ( gc, coord_mode, points, onerror =
+          None )
+
+ -- Method on Drawable: line ( gc, x1, y1, x2, y2, onerror = None )
+
+ -- Method on Drawable: poly_segment ( gc, segments, onerror = None )
+
+ -- Method on Drawable: poly_rectangle ( gc, rectangles, onerror = None
+          )
+
+ -- Method on Drawable: rectangle ( gc, x, y, width, height, onerror =
+          None )
+
+ -- Method on Drawable: poly_arc ( gc, arcs, onerror = None )
+
+ -- Method on Drawable: arc ( gc, x, y, width, height, angle1, angle2,
+          onerror = None )
+
+ -- Method on Drawable: fill_poly ( gc, shape, coord_mode, points,
+          onerror = None )
+
+ -- Method on Drawable: poly_fill_rectangle ( gc, rectangles, onerror =
+          None )
+
+ -- Method on Drawable: fill_rectangle ( gc, x, y, width, height,
+          onerror = None )
+
+ -- Method on Drawable: poly_fill_arc ( gc, arcs, onerror = None )
+
+ -- Method on Drawable: fill_arc ( gc, x, y, width, height, angle1,
+          angle2, onerror = None )
+
+ -- Method on Drawable: put_image ( )
+     Not implemented yet.
+
+ -- Method on Drawable: get_image ( )
+     Not implemented yet.
+
+ -- Method on Drawable: draw_text ( gc, x, y, text, onerror = None )
+
+ -- Method on Drawable: poly_text ( gc, x, y, items, onerror = None )
+
+ -- Method on Drawable: poly_text_16 ( gc, x, y, items, onerror = None )
+
+ -- Method on Drawable: image_text ( gc, x, y, string, onerror = None )
+
+ -- Method on Drawable: image_text_16 ( gc, x, y, string, onerror =
+          None )
+
+ -- Method on Drawable: query_best_size ( item_class, width, height )
+     Returns Card16('width'), Card16('height'),
+
+
+File: python-xlib.info,  Node: Window,  Next: Pixmap,  Prev: Drawable,  Up: X Objects
+
+12.6 Window
+===========
+
+`Window' objects have additional objects, see *Note Resource:: and
+*Note Drawable::.
+
+ -- Method on Window: create_window ( x, y, width, height,
+          border_width, depth, window_class = X.CopyFromParent, visual
+          = X.CopyFromParent, **keys )
+     Returns Window
+
+ -- Method on Window: change_attributes ( onerror = None, **keys )
+
+ -- Method on Window: get_attributes ( )
+     Returns Card8('backing_store'), Card32('visual'), Card16('class'),
+     Card8('bit_gravity'), Card8('win_gravity'),
+     Card32('backing_bit_planes'), Card32('backing_pixel'),
+     Card8('save_under'), Card8('map_is_installed'), Card8('map_state'),
+     Card8('override_redirect'), Colormap('colormap', (X.NONE, )),
+     Card32('all_event_masks'), Card32('your_event_mask'),
+     Card16('do_not_propagate_mask'),
+
+ -- Method on Window: destroy ( onerror = None )
+
+ -- Method on Window: destroy_sub_windows ( onerror = None )
+
+ -- Method on Window: change_save_set ( mode, onerror = None )
+
+ -- Method on Window: reparent ( parent, x, y, onerror = None )
+
+ -- Method on Window: map ( onerror = None )
+
+ -- Method on Window: map_sub_windows ( onerror = None )
+
+ -- Method on Window: unmap ( onerror = None )
+
+ -- Method on Window: unmap_sub_windows ( onerror = None )
+
+ -- Method on Window: configure ( onerror = None, **keys )
+
+ -- Method on Window: circulate ( direction, onerror = None )
+
+ -- Method on Window: query_tree ( )
+     Returns Window('root'), Window('parent', (X.NONE, )),
+     List('children', WindowObj),
+
+ -- Method on Window: change_property ( property, type, format, data,
+          mode = X.PropModeReplace, onerror = None )
+
+ -- Method on Window: delete_property ( property, onerror = None )
+
+ -- Method on Window: get_property ( property, type, offset, length,
+          delete = 0 )
+     Returns None or Card32('property_type'), Card8('format'),
+     PropertyData('value'), Card32('bytes_after'),
+
+ -- Method on Window: get_full_property ( property, type, sizehint = 10
+          )
+     Returns None or Card32('property_type'), Card8('format'),
+     PropertyData('value'), Card32('bytes_after'),
+
+ -- Method on Window: list_properties ( )
+     Returns List('atoms', Card32Obj),
+
+ -- Method on Window: set_selection_owner ( selection, time, onerror =
+          None )
+
+ -- Method on Window: convert_selection ( selection, target, property,
+          time, onerror = None )
+
+ -- Method on Window: send_event ( event, event_mask = 0, propagate =
+          0, onerror = None )
+
+ -- Method on Window: grab_pointer ( owner_events, event_mask,
+          pointer_mode, keyboard_mode, confine_to, cursor, time )
+     Returns Card8('status'),
+
+ -- Method on Window: grab_button ( button, modifiers, owner_events,
+          event_mask, pointer_mode, keyboard_mode, confine_to, cursor,
+          onerror = None )
+
+ -- Method on Window: ungrab_button ( button, modifiers, onerror = None
+          )
+
+ -- Method on Window: grab_keyboard ( owner_events, pointer_mode,
+          keyboard_mode, time )
+     Returns Card8('status'),
+
+ -- Method on Window: grab_key ( key, modifiers, owner_events,
+          pointer_mode, keyboard_mode, onerror = None )
+
+ -- Method on Window: ungrab_key ( key, modifiers, onerror = None )
+
+ -- Method on Window: query_pointer ( )
+     Returns Card8('same_screen'), Window('root'), Window('child',
+     (X.NONE, )), Int16('root_x'), Int16('root_y'), Int16('win_x'),
+     Int16('win_y'), Card16('mask'),
+
+ -- Method on Window: get_motion_events ( start, stop )
+     Returns List('events', structs.TimeCoord),
+
+ -- Method on Window: translate_coords ( src_window, src_x, src_y )
+     Returns Window('child', (X.NONE, )), Int16('x'), Int16('y'),
+
+ -- Method on Window: warp_pointer ( x, y, src_window = 0, src_x = 0,
+          src_y = 0, src_width = 0, src_height = 0, onerror = None )
+
+ -- Method on Window: set_input_focus ( revert_to, time, onerror = None
+          )
+
+ -- Method on Window: clear_area ( x = 0, y = 0, width = 0, height = 0,
+          exposures = 0, onerror = None )
+
+ -- Method on Window: create_colormap ( visual, alloc )
+     Returns Colormap.
+
+ -- Method on Window: list_installed_colormaps ( )
+     Returns List('cmaps', ColormapObj),
+
+ -- Method on Window: rotate_properties ( properties, delta, onerror =
+          None )
+
+ -- Method on Window: set_wm_name ( name, onerror = None )
+
+ -- Method on Window: get_wm_name ( )
+     Returns None or string.
+
+ -- Method on Window: set_wm_icon_name ( name, onerror = None )
+
+ -- Method on Window: get_wm_icon_name ( )
+     Returns None or string.
+
+ -- Method on Window: set_wm_class ( inst, cls, onerror = None )
+
+ -- Method on Window: get_wm_class ( )
+     Returns None or (isntance, class)
+
+ -- Method on Window: set_wm_transient_for ( window, onerror = None )
+
+ -- Method on Window: get_wm_transient_for ( )
+     Returns None or Window.
+
+ -- Method on Window: set_wm_protocols ( protocols, onerror = None )
+
+ -- Method on Window: get_wm_protocols ( )
+     Returns list of atoms.
+
+ -- Method on Window: set_wm_colormap_windows ( windows, onerror = None
+          )
+
+ -- Method on Window: get_wm_colormap_windows ( )
+     Returns list of Windows.
+
+ -- Method on Window: set_wm_client_machine ( name, onerror = None )
+
+ -- Method on Window: get_wm_client_machine ( )
+     Returns None or string.
+
+ -- Method on Window: set_wm_normal_hints ( hints = , onerror = None,
+          **keys )
+
+ -- Method on Window: get_wm_normal_hints ( )
+     Returns  Card32('flags'), Int32('min_width', default = 0),
+     Int32('min_height', default = 0), Int32('max_width', default = 0),
+     Int32('max_height', default = 0), Int32('width_inc', default = 0),
+     Int32('height_inc', default = 0), Object('min_aspect', Aspect,
+     default = (0, 0)), Object('max_aspect', Aspect, default = (0, 0)),
+     Int32('base_width', default = 0), Int32('base_height', default =
+     0), Int32('win_gravity', default = 0),
+
+ -- Method on Window: set_wm_hints ( hints = , onerror = None, **keys )
+
+ -- Method on Window: get_wm_hints ( )
+     Returns Card32('flags'), Card32('input', default = 0),
+     Set('initial_state', 4, ( Xutil.NormalState, Xutil.IconicState ),
+     default = Xutil.NormalState), Pixmap('icon_pixmap', default = 0),
+     Window('icon_window', default = 0), Int32('icon_x', default = 0),
+     Int32('icon_y', default = 0), Pixmap('icon_mask', default = 0),
+     Window('window_group', default = 0),
+
+ -- Method on Window: set_wm_state ( hints = , onerror = None, **keys )
+
+ -- Method on Window: get_wm_state ( )
+     Returns  Set('state', 4, ( Xutil.WithdrawnState, Xutil.NormalState,
+     Xutil.IconicState )), Window('icon', ( X.NONE, )),
+
+ -- Method on Window: set_wm_icon_size ( hints = , onerror = None,
+          **keys )
+
+ -- Method on Window: get_wm_icon_size ( )
+     Returns Card32('min_width'), Card32('min_height'),
+     Card32('max_width'), Card32('max_height'), Card32('width_inc'),
+     Card32('height_inc'),
+
+
+File: python-xlib.info,  Node: Pixmap,  Next: Fontable,  Prev: Window,  Up: X Objects
+
+12.7 Pixmap
+===========
+
+`Pixmap' objects have additional objects, see *Note Resource:: and
+*Note Drawable::.
+
+ -- Method on Pixmap: free ( onerror = None )
+
+ -- Method on Pixmap: create_cursor ( mask, (fore_red, fore_green,
+          fore_blue), (back_red, back_green, back_blue), x, y )
+     Returns Cursor.
+
+
+File: python-xlib.info,  Node: Fontable,  Next: GC,  Prev: Pixmap,  Up: X Objects
+
+12.8 Fontable
+=============
+
+`Fontable' is a base class of `GC' and `Font' objects.  *Note GC::, and
+*Note Font::.
+
+   *Note Resource::, for additional methods.
+
+ -- Method on Fontable: query ( )
+     Returns Object('min_bounds', structs.CharInfo),
+     Object('max_bounds', structs.CharInfo),
+     Card16('min_char_or_byte2'), Card16('max_char_or_byte2'),
+     Card16('default_char'), Card8('draw_direction'),
+     Card8('min_byte1,'), Card8('max_byte1,'), Card8('all_chars_exist'),
+     Int16('font_ascent'), Int16('font_descent'), List('properties',
+     structs.FontProp), List('char_infos', structs.CharInfo),
+
+ -- Method on Fontable: query_text_extents ( string )
+     Returns Card8('draw_direction'), Int16('font_ascent'),
+     Int16('font_descent'), Int16('overall_ascent'),
+     Int16('overall_descent'), Int32('overall_width'),
+     Int32('overall_left'), Int32('overall_right'),
+
+
+File: python-xlib.info,  Node: GC,  Next: Font,  Prev: Fontable,  Up: X Objects
+
+12.9 GC
+=======
+
+`GC' objects have additional objects, see *Note Resource:: and *Note
+Fontable::.
+
+ -- Method on GC: change ( onerror = None, **keys )
+
+ -- Method on GC: copy ( src_gc, mask, onerror = None )
+
+ -- Method on GC: set_dashes ( offset, dashes, onerror = None )
+
+ -- Method on GC: set_clip_rectangles ( x_origin, y_origin, rectangles,
+          ordering, onerror = None )
+
+ -- Method on GC: free ( onerror = None )
+
+
+File: python-xlib.info,  Node: Font,  Prev: GC,  Up: X Objects
+
+12.10 Font
+==========
+
+`Font' objects have additional objects, see *Note Resource:: and *Note
+Fontable::.
+
+ -- Method on Font: close ( onerror = None )
+
+ -- Method on Font: create_glyph_cursor ( mask, source_char, mask_char,
+          (fore_red, fore_green, fore_blue), (back_red, back_green,
+          back_blue) )
+     Returns Cursor.
+
+
+
+Tag Table:
+Node: Top973
+Node: Basic X Concepts2434
+Node: Package Layout2829
+Node: Connect to a Display4556
+Node: Unix Display Names5917
+Node: OpenVMS Display Names7395
+Node: Error Handling7979
+Node: X Error Classes9418
+Node: CatchError10788
+Node: Event Handling12789
+Node: Getting Events13499
+Node: Selecting Events15767
+Node: Event Types19507
+Node: Sending Events40392
+Node: X Objects42347
+Node: Display43726
+Node: Resource63527
+Node: Colormap63823
+Node: Cursor65443
+Node: Drawable65799
+Node: Window68553
+Node: Pixmap75575
+Node: Fontable75975
+Node: GC76951
+Node: Font77461
+
+End Tag Table

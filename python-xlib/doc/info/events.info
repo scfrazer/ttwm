@@ -1,0 +1,798 @@
+   This is events.info, produced by makeinfo version 4.7 from ../src/events.texi.
+
+
+
+File: events.info,  Node: Event Handling
+
+4 Event Handling
+****************
+
+Events are sent from the X server to the X client.  Most of the event
+types deal with user input, but there are also event types used for
+inter-client communication.
+
+   Most X applications are built around an event loop, where the client
+waits for the server to send events.  The client responds to the events,
+typically by doing one or more X requests.
+
+* Menu:
+
+* Getting Events::    Waiting for events.
+* Selecting Events::  Selecting interesting events.
+* Event Types::       Details on all event types.
+* Sending Events::    Clients sending events to other clients.
+
+
+File: events.info,  Node: Getting Events,  Next: Selecting Events,  Up: Event Handling
+
+4.1 Getting Events
+==================
+
+Events can be sent at any time, not necessarily when the client is ready
+to recieve an event. Therefore they must be stored temporarily from that
+they are read from the network until the client is ready to handle them.
+Read but unhandled events are stored on an event queue in the Display
+object.  There are two functions to access this queue:
+
+ -- Method on Display: next_event ( )
+     Return the next event in the event queue.  If the event queue is
+     empty, block until an event is read from the network, and return
+     that one.
+
+
+ -- Method on Display: pending_events ( )
+     Return the number of events which can be returned without blocking.
+
+
+   A trivial event loop would simply loop infinitely, waiting for an
+event and then handling it.  It could look like this:
+
+     while 1:
+        event = disp.next_event()
+        handle_event(event)
+
+   However, most applications need more control, e.g. to simultaneously
+handle a network connection or at regular intervals schedule timeouts.
+The module `select' is often used for this.  `Display' objects can be
+used with `select', since they have the required `fileno()' method.
+When `select' indicates that a `Display' object is ready for reading,
+that means that the server has sent some data to the client.  That
+alone doesn't guarantee that an entire event has arrived, so one must
+first use `pending_events()' to make sure that `next_event()' will
+return without blocking.  A simple event loop which waits for events or
+a one-second timeout looks like this:
+
+     while 1:
+         # Wait for display to send something, or a timeout of one second
+         readable, w, e = select.select([disp], [], [], 1)
+
+         # if no files are ready to be read, it's an timeout
+         if not readable:
+             handle_timeout()
+
+         # if display is readable, handle as many events as have been recieved
+         elif disp in readable:
+             i = disp.pending_events()
+             while i > 0:
+                 event = disp.next_event()
+                 handle_event(event)
+                 i = i - 1
+
+         # loop around to wait for more things to happen
+
+
+File: events.info,  Node: Selecting Events,  Next: Event Types,  Prev: Getting Events,  Up: Event Handling
+
+4.2 Selecting Events
+====================
+
+To avoid flooding the clients with events in which they have no
+interest, they must explicitly tell the server which events they are
+interested in.  This is done by providing the `event_mask' attribute
+when creating windows with `Window.create_window' or in calls to
+`Window.change_attributes'.  The value of this attribute is a mask of
+all types of events the client is interested in on that particular
+window.  Whenever the server generates an event for a window which
+matches the clients event mask on that window, the event will be sent
+to the client.
+
+   The following table lists all event masks and the corresponding event
+types and classes.  All event masks and types are integer constants
+defined in the module `Xlib.X'.  Classes have the same name as the
+event type, and are defined in `Xlib.protocol.event'.
+
+*Mask*                     *Type and Class*   *Generated when*
+ButtonMotionMask           MotionNotify       Pointer moved with any or a
+Button1MotionMask                             certain button down
+Button2MotionMask                             
+Button3MotionMask                             
+Button4MotionMask                             
+Button5MotionMask                             
+
+ButtonPressMask            ButtonPress        Pointer button pressed
+ButtonReleaseMask          ButtonRelease      Pointer button released
+
+ColormapChangeMask         ColormapNotify     Colormap changed or installed
+
+EnterWindowMask            EnterNotify        Pointer enters window
+LeaveWindowMask            LeaveNotify        Pointer leaves window
+
+ExposureMask               Expose             Window needs to be redrawn
+                           NoExpose           
+
+FocusChangeMask            FocusIn            Focus changes
+                           FocusOut           
+KeymapStateMask            KeymapNotify       After EnterNotify and FocusIn
+
+KeyPressMask               KeyPress           Key is pressed
+KeyReleaseMask             ReleasePress       Key is released
+
+PointerMotionMask          MotionNotify       Pointer is moved
+
+PropertyChangeMask         PropertyNotify     Window properties change
+
+StructureNotifyMask        CirculateNotify    Window structure changes
+                           ConfigureNotify    
+                           DestroyNotify      
+                           GravityNotify      
+                           MapNotify          
+                           ReparentNotify     
+                           UnmapNotify        
+
+SubstructureNotifyMask     CirculateNotify    Child window structure changes
+                           ConfigureNotify    
+                           CreateNotify       
+                           DestroyNotify      
+                           GravityNotify      
+                           MapNotify          
+                           ReparentNotify     
+                           UnmapNotify        
+
+ResizeRedirectMask         ResizeRequest      Controlling window size change
+
+SubstructureRedirectMask   CirculateRequest   Controlling changes to child
+                           ConfigureRequest   windows
+                           MapRequest         
+
+VisibilityChangeMask       VisibilityNotify   Window is obscured or visible
+
+   There are also some event types which are always sent to the clients,
+regardless of any event masks:
+
+*Type and Class*   *Cut'n'pasting between
+                   windows*
+ClientMessage      Other client sends message
+
+MappingMotify      Keyboard mapping changes
+
+SelectionClear     Cut'n'pasting between
+SelectionNotify    windows
+SelectionRequest   
+
+
+File: events.info,  Node: Event Types,  Next: Sending Events,  Prev: Selecting Events,  Up: Event Handling
+
+4.3 Event Types
+===============
+
+This section describes all event types by listing their fields and basic
+information on when they are generated.  All events are defined in the
+module `Xlib.protocol.event'.  All event types have the following two
+attributes:
+
+ -- Instance Variable of Event: type
+     Stores the X type code of this event.  Type codes are integers in
+     the range 2-127, and are defined with symbolic names in `Xlib.X'.
+     The symbolic names are the same as the event class names, except
+     for the special event `AnyEvent'.
+
+
+ -- Instance Variable of Event: send_event
+     This attribute is normally 0, meaning that the event was generated
+     by the X server.  It is set to 1 if this event was instead sent
+     from another client.
+
+
+   Event object can be created by instantiating the corresponding event
+class, providing all the attributes described for the event as keyword
+arguments.
+
+ -- Event: KeyPress
+ -- Event: KeyRelease
+ -- Event: ButtonPress
+ -- Event: ButtonRelease
+ -- Event: MotionNotify
+     These events are generated when a key or a button logically changes
+     state, or when the pointer logically moves.  In the discussion
+     below, the "source window" is the window that the event occured
+     in.  The event may be generated on some other window than the
+     source window, see XKeyEvent(3X11) for details.  The same man page
+     also describes `MotionNotify'.
+
+      -- Instance Variable of KeyButtonPointerEvent: time
+          The server X time when this event was generated.
+
+      -- Instance Variable of KeyButtonPointerEvent: root
+          The root window which the source window is an inferior of.
+
+      -- Instance Variable of KeyButtonPointerEvent: window
+          The window the event is reported on.
+
+      -- Instance Variable of KeyButtonPointerEvent: same_screen
+          Set to 1 if `window' is on the same screen as `root', 0
+          otherwise.
+
+      -- Instance Variable of KeyButtonPointerEvent: child
+          If the source window is an inferior of `window', `child' is
+          set to the child of `window' that is the ancestor of (or is)
+          the source window.  Otherwise it is set to `X.NONE'.
+
+      -- Instance Variable of KeyButtonPointerEvent: root_x
+      -- Instance Variable of KeyButtonPointerEvent: root_y
+          The pointer coordinates at the time of the event, relative to
+          the root window.
+
+      -- Instance Variable of KeyButtonPointerEvent: event_x
+      -- Instance Variable of KeyButtonPointerEvent: event_y
+          The pointer coordinates at the time of the event, relative to
+          `window'.  If `window' is not on the same screen as `root',
+          these are set to 0.
+
+      -- Instance Variable of KeyButtonPointerEvent: state
+          The logical state of the button and modifier keys just before
+          the event.
+
+      -- Instance Variable of KeyButtonPointerEvent: detail
+          For `KeyPress' and `KeyRelease', this is the keycode of the
+          event key.
+
+          For `ButtonPress' and `ButtonRelease', this is the button of
+          the event.
+
+          For `MotionNotify', this is either `X.NotifyNormal' or
+          `X.NotifyHint'.
+
+
+ -- Event: EnterNotify
+ -- Event: LeaveNotify
+     If pointer motion or window hierarchy change causes the pointer to
+     be in another window than before, these events are generated
+     instead of a `MotionNotify' event.
+
+     The semantics are quite complex, see XCrossingEvent(3X11) for
+     details.
+
+      -- Instance Variable of EnterLeaveEvent: time
+          The server X time when this event was generated.
+
+      -- Instance Variable of EnterLeaveEvent: root
+          The root window of the pointer at the end of this event.
+
+      -- Instance Variable of EnterLeaveEvent: window
+          The window the event is reported for.
+
+      -- Instance Variable of EnterLeaveEvent: child
+          In a `LeaveNotify' event, if a child of `window' contains the
+          initial pointer position, this is set to that child window.
+          In a `EnterNotify' event, if a child of `window' contains the
+          final pointer position, this is set to that child window.
+          Otherwise this is set to `X.NONE'.
+
+      -- Instance Variable of EnterLeaveEvent: root_x
+      -- Instance Variable of EnterLeaveEvent: root_y
+          The final pointer position relative to `root'.
+
+      -- Instance Variable of EnterLeaveEvent: event_x
+      -- Instance Variable of EnterLeaveEvent: event_y
+          The final pointer position relative to `window'.
+
+      -- Instance Variable of EnterLeaveEvent: state
+          The modifier and button state at the time of the event.
+
+      -- Instance Variable of EnterLeaveEvent: mode
+          One of `X.NotifyNormal', `X.NotifyGrab' or `X.NotifyUngrab'.
+
+      -- Instance Variable of EnterLeaveEvent: detail
+          One of `X.NotifyAncestor', `X.NotifyVirtual',
+          `X.NotifyInferior', `X.NotifyNonlinear', or
+          `X.NotifyNonlinearVirtual'.
+
+      -- Instance Variable of EnterLeaveEvent: flags
+          If bit 0 is set, `window' is the focus window or an inferior
+          of it.  If bit 1 is set, `window' is on the same screen as
+          `root'.
+
+
+ -- Event: FocusIn
+ -- Event: FocusOut
+     These events are generated when the focus changes.  This is also
+     very complex events, see XFocusChangeEvent(3X11) for details.
+
+      -- Instance Variable of FocusEvent: window
+          The window the event is generated for.
+
+      -- Instance Variable of FocusEvent: mode
+          One of `X.NotifyNormal', `X.NotifyWhileGrabbed',
+          `X.NotifyGrab', or `X.NotifyUngrab'.
+
+      -- Instance Variable of FocusEvent: detail
+          One of `X.NotifyAncestor', `X.NotifyVirtual',
+          `X.NotifyInferior', `X.NotifyNonlinear',
+          `X.NotifyNonlinearVirtual', `X.NotifyPointer',
+          `X.NotifyPointerRoot', or `X.NONE'.
+
+
+ -- Event: KeymapNotify
+     This event is generated immediately after every `EnterNotify' and
+     `FocusIn'.
+
+      -- Instance Variable of KeymapNotify: data
+          A list of 31 eight-bit integers, as returned by query_keymap.
+
+
+ -- Event: Expose
+     This event is generated when regions of a window has to be
+     redrawn.  The regions are decomposed into a set of rectangles, and
+     an `Expose' event is generated for each rectangle.
+
+      -- Instance Variable of Expose: window
+          The window containing regions to redraw.
+
+      -- Instance Variable of Expose: x
+      -- Instance Variable of Expose: y
+      -- Instance Variable of Expose: width
+      -- Instance Variable of Expose: height
+          The coordinates of the rectangle to redraw.
+
+      -- Instance Variable of Expose: count
+          At least this many more `Expose' events will immediately
+          follow for this window.  If this is the last event, `count'
+          is set to 0.
+
+          This allows a simple application to ignore all `Expose' events
+          with a non-zero `count', and then redraw the entire window
+          when the zero event is received.
+
+
+ -- Event: GraphicsExpose
+ -- Event: NoExpose
+     These events may be generated for drawables when a graphics
+     context with `graphics_exposures' selected is used.  See
+     XGraphicsExposeEvent(3X11) for details.
+
+     Both events have these attributes:
+
+      -- Instance Variable of GraphicsExpose: drawable
+          The drawable of the event.
+
+      -- Instance Variable of GraphicsExpose: major_event
+      -- Instance Variable of GraphicsExpose: minor_event
+          The major and minor number of the request that generated this
+          event.  For the core protocol `major_event' is always 62
+          (CopyArea) or 63 (CopyPlane), and `minor_event' is always 0.
+
+     GraphicsExpose have these additional attributes:
+
+      -- Instance Variable of GraphicsExpose: x
+      -- Instance Variable of GraphicsExpose: y
+      -- Instance Variable of GraphicsExpose: width
+      -- Instance Variable of GraphicsExpose: height
+          The coordinates of the event region.
+
+      -- Instance Variable of GraphicsExpose: count
+          At least this many more `GraphicsExposure' events follows.
+          The last one has `count' set to 0.
+
+
+ -- Event: VisibilityNotify
+     These events are generated when the visibility of a viewable
+     window is changed.  See XVisibilityNotifyEvent(3X11).
+
+      -- Instance Variable of VisibiltyNotify: window
+          The window of the event.
+
+      -- Instance Variable of VisibiltyNotify: state
+          One of `X.VisibilityUnobscured',
+          `X.VisibilityPartiallyObscured', or
+          `X.VisibilityFullyObscured'.
+
+
+ -- Event: CreateNotify
+     This event is generated when a window is created.
+     `X.SubstructureNotifyMask' must be selected on the parent of the
+     new window to receive this event.
+
+      -- Instance Variable of CreateNotify: parent
+          The parent of the new window.
+
+      -- Instance Variable of CreateNotify: window
+          The new window.
+
+      -- Instance Variable of CreateNotify: x
+      -- Instance Variable of CreateNotify: y
+      -- Instance Variable of CreateNotify: width
+      -- Instance Variable of CreateNotify: height
+      -- Instance Variable of CreateNotify: border_width
+      -- Instance Variable of CreateNotify: override
+          These values are fetched from the `create_window' call.
+
+
+ -- Event: DestroyNotify
+     This event is generated when a window is destroyed.
+
+      -- Instance Variable of DestroyNotify: event
+          The window that the event is generated for.
+
+      -- Instance Variable of DestroyNotify: window
+          The window that was destroyed.
+
+
+ -- Event: UnmapNotify
+     This event is generated when a window is unmapped.
+
+      -- Instance Variable of UnmapNotify: event
+          The window that the event is generated for.
+
+      -- Instance Variable of UnmapNotify: window
+          The window that was unmapped.
+
+      -- Instance Variable of Event: from_configure
+          This is true if `window' was unmapped because its parent was
+          resized and `window' had win-gravity `X.UnmapGravity'.
+
+
+ -- Event: MapNotify
+     This event is generated when a window is mapped.
+
+      -- Instance Variable of MapNotify: event
+          The window that the event is generated for.
+
+      -- Instance Variable of MapNotify: window
+          The window that was mapped.
+
+      -- Instance Variable of Event: override
+          This is set from the corresponding window attribute.
+
+ -- Event: MapRequest
+     This event is reported to the client that has set
+     `X.SubstructureRedirectMask' on a window, and an unmapped child of
+     that window attempts to be mapped by some other client, unless the
+     child has override-redirect set.
+
+      -- Instance Variable of MapRequest: parent
+          The parent window.
+
+      -- Instance Variable of MapRequest: window
+          The child window that attempts to be mapped.
+
+
+ -- Event: ReparentNotify
+     This event is reported to clients selecting
+     `X.SubstructureNotifyMask' on either the old or the new parent and
+     to clients selecting `X.StructureNotifyMask' on the reparented
+     window.
+
+      -- Instance Variable of ReparentNotify: event
+          The window the event is generated for.
+
+      -- Instance Variable of ReparentNotify: window
+          The reparented window.
+
+      -- Instance Variable of ReparentNotify: parent
+          The new parent window.
+
+      -- Instance Variable of ReparentNotify: x
+      -- Instance Variable of ReparentNotify: y
+          The coordinates of the upper-left outer corner of `window' in
+          `parent'.
+
+      -- Instance Variable of ReparentNotify: override
+          This is set from the corresponding attribute on `window'.
+
+
+ -- Event: ConfigureNotify
+     This event is generated when a configure request actually changes
+     the state of the window.
+
+      -- Instance Variable of ConfigureNotify: event
+          The window that the event is generated for.
+
+      -- Instance Variable of ConfigureNotify: window
+          The window that has been changed.
+
+      -- Instance Variable of ConfigureNotify: x
+      -- Instance Variable of ConfigureNotify: y
+      -- Instance Variable of ConfigureNotify: width
+      -- Instance Variable of ConfigureNotify: height
+      -- Instance Variable of ConfigureNotify: border_width
+          The new coordinate and geometry of `window'.
+
+      -- Instance Variable of ConfigureNotify: above_sibling
+          This is `X.NONE' if this window is at the bottom of the window
+          stack.  Otherwise it is the sibling window that `window' is
+          immediately above.
+
+      -- Instance Variable of ConfigureNotify: override
+          This is set from the corresponding attribute on `window'.
+
+
+ -- Event: ConfigureRequest
+     This event is reported to the client that has set
+     `X.SubstructureRedirectMask' on the parent of a window that another
+     client attempts to configure, unless the window has
+     override-redirect set.
+
+      -- Instance Variable of ConfigureRequest: parent
+          The parent of the window being configured.
+
+      -- Instance Variable of ConfigureRequest: window
+          The window being configured.
+
+      -- Instance Variable of ConfigureRequest: value_mask
+          A bitmask indicating which values that the caller tries to
+          change.
+
+      -- Instance Variable of ConfigureRequest: x
+      -- Instance Variable of ConfigureRequest: y
+      -- Instance Variable of ConfigureRequest: width
+      -- Instance Variable of ConfigureRequest: height
+      -- Instance Variable of ConfigureRequest: border_width
+          The window geometry in the configure call.  If `X.CWX',
+          `X.CWY', `X.CWWidth', `X.CWHeight', or `X.CWBorderWidth' is
+          set in `value_mask', the corresponding attributes contains
+          the new value as given in the configure call, otherwise the
+          current value is used.
+
+      -- Instance Variable of ConfigureRequest: stack_mode
+          If `X.CWStackMode' is set in `value_mask', this is the stack
+          mode specified in the configure call, one of `X.Above',
+          `X.Below', `X.TopIf', `X.BottomIf', or `X.Opposite'.  If the
+          flag is not set, this is set to `X.Above'.
+
+      -- Instance Variable of ConfigureRequest: sibling
+          If `X.CWSibling' is set in `value_mask', this is the sibling
+          window specified in the configure call.  If the flag is not
+          set, this is set to `X.NONE'.
+
+
+ -- Event: GravityNotify
+     This event is generated when a window is moved because its
+     parent's size has changed.
+
+      -- Instance Variable of GravityNotify: event
+          The window the event is generated for.
+
+      -- Instance Variable of GravityNotify: window
+          The window that moved.
+
+      -- Instance Variable of GravityNotify: x
+      -- Instance Variable of GravityNotify: y
+          The new coordinates of the upper-left outer corner of
+          `window'.
+
+
+ -- Event: ResizeRequest
+     This is reported to the client selecting `X.ResizeRedirectMask' on
+     a window, and another client attempts to resize it.
+
+      -- Instance Variable of ResizeRedirect: window
+          The window that was attempted to be resized.
+
+      -- Instance Variable of ResizeRedirect: width
+      -- Instance Variable of ResizeRedirect: height
+          The requested size of the window, excluding the border.
+
+
+ -- Event: CirculateNotify
+     This event is generated when a window is restacked caused by a
+     circulate call.
+
+      -- Instance Variable of Event: event
+          The window the event is reported on.
+
+      -- Instance Variable of Event: window
+          The window that has been restacked.
+
+      -- Instance Variable of Event: place
+          Either `X.PlaceOnTop' or `X.PlaceOnBottom'.
+
+
+ -- Event: CirculateRequest
+     This event is reported to the client that has set
+     `X.SubstructureRedirectMask' on the parent of a window that needs
+     to be restacked as a result of a circulate call on the parent.
+
+      -- Instance Variable of CirculateRequest: parent
+          The parent window.
+
+      -- Instance Variable of CirculateRequest: window
+          The window that should be restacked.
+
+      -- Instance Variable of CirculateRequest: place
+          Where `window' should be placed, either `X.PlaceOnTop' or
+          `X.PlaceOnBottom'.
+
+
+ -- Event: PropertyNotify
+     This event is generated when a property on a window is changed.
+
+      -- Instance Variable of Event: window
+          The window which the property is or was set on.
+
+      -- Instance Variable of Event: atom
+          The atom identifying the property.
+
+      -- Instance Variable of Event: time
+          The server X time when the property was changed.
+
+      -- Instance Variable of Event: state
+          What was changed, either `X.PropertyNewValue' or
+          `X.PropertyDelete'.
+
+
+ -- Event: SelectionClear
+     This event is reported to the owner of a selection when it has
+     gotten a new owner.
+
+      -- Instance Variable of SelectionClear: window
+          The owner window of the selection.
+
+      -- Instance Variable of SelectionClear: atom
+          The selection atom.
+
+      -- Instance Variable of SelectionClear: time
+          The server X time when the selection was last changed.
+
+
+ -- Event: SelectionRequest
+     This event is reported to the owner of a selection when a client
+     requests it by calling convert_selection.
+
+      -- Instance Variable of SelectionRequest: owner
+          The owner window of the selection.
+
+      -- Instance Variable of SelectionRequest: requestor
+      -- Instance Variable of SelectionRequest: selection
+      -- Instance Variable of SelectionRequest: target
+      -- Instance Variable of SelectionRequest: property
+      -- Instance Variable of SelectionRequest: time
+          These attributes are fetched from the convert_selection call.
+
+
+ -- Event: SelectionNotify
+     This event is generated by the server if there are no owner of a
+     selection when convert_selection is called.  If there is an owner,
+     it should send this event to the requestor when the selection has
+     been converted.
+
+      -- Instance Variable of SelectionNotify: requestor
+      -- Instance Variable of SelectionNotify: selection
+      -- Instance Variable of SelectionNotify: target
+      -- Instance Variable of SelectionNotify: property
+      -- Instance Variable of SelectionNotify: time
+          See XSelectionEvent(3X11).
+
+
+ -- Event: ColormapNotify
+     This event is generated when the colormap attribute of a window is
+     set, or when a window's colormap is installed or uninstalled.
+
+      -- Instance Variable of ColormapNotify: window
+          The affected window.
+
+      -- Instance Variable of ColormapNotify: colormap
+          The colormap of the window, or `X.NONE'.
+
+      -- Instance Variable of ColormapNotify: new
+          Set to 1 if the colormap attribute has been set, 0 when the
+          colormap is installed or uninstalled.
+
+      -- Instance Variable of ColormapNotify: state
+          Indicates whether the colormap is installed or not, either
+          `X.ColormapInstalled' or `X.ColormapUninstalled'.
+
+
+ -- Event: MappingNotify
+     This event is sent to all clients, without any event mask having
+     to be set.  It is sent when the keyboard or pointer mapping is
+     changed.
+
+      -- Instance Variable of MappingNotify: request
+          The mapping that has changed, one of `X.MappingModifier',
+          `X.MappingKeyboard' or `X.Pointer'.
+
+      -- Instance Variable of MappingNotify: first_keycode
+      -- Instance Variable of MappingNotify: count
+          If the keyboard mapping has changed, this is the range of
+          modified keycodes.
+
+
+ -- Event: ClientMessage
+     This event is only generated by clients using send_event.
+
+      -- Instance Variable of ClientMessage: window
+          The destination window of the event.
+
+      -- Instance Variable of ClientMessage: client_type
+          The type of message, an atom.
+
+      -- Instance Variable of ClientMessage: data
+          The message data as a tuple: `(format, mdata)'
+
+          Format must be one of 8, 16, or 32.  mdata must either be a
+          string of exactly 20 characters, or a list of exactly 20, 10
+          or 5 integers depending of the format.
+
+
+ -- Event: AnyEvent
+     This event is represents an event the Xlib does not recognise.
+     These should never be returned by `Display.next_event()', but they
+     might be useful for sending special events to other clients.
+
+      -- Instance Variable of AnyEvent: detail
+          An eight-bit integer.
+
+      -- Instance Variable of AnyEvent: data
+          A string of exactly 28 characters.
+
+
+
+File: events.info,  Node: Sending Events,  Prev: Event Types,  Up: Event Handling
+
+4.4 Sending Events
+==================
+
+Clients can send events to each other.  Most often these are
+general-purpose `ClientMessage' events, but any event type can be sent.
+
+   To send an event, an event object must be created.  This is done by
+instantiating an event class, providing values to all its fields as
+keyword parameters.  The event is then sent with the `send_event()'
+method:
+
+ -- Method on Window: send_event ( event, event_mask = 0, propagate =
+          0, onerror = None )
+     Send EVENT to this window.
+
+     If EVENT_MASK is 0, the event is sent to the client that created
+     the window.  Otherwise the event is sent to every client selecting
+     any of the event types in EVENT_MASK.
+
+     If no clients have selected any of the event types and PROPAGATE
+     is true, the X server will search for an ancestor of this window on
+     which some client has selected any of the event types.  For
+     details, see XSendEvent(3X11).
+
+
+ -- Method on Display: send_event ( destination, event, event_mask = 0,
+          propagate = 0, onerror = None )
+     Send EVENT to DESTINATION, which can either be a `Window' object
+     or a constant:  If `X.PointerWindow' is specified, send the event
+     to the window the pointer is in. If `X.InputFocus' is specified
+     and the focus window contains the pointer, send the event to the
+     window that the pointer is in.  Otherwise, send the event to the
+     focus window.
+
+
+   As an example, this creates and sends a `ClientMessage' event of the
+client specific type `HELLO_WORLD' (an atom), to the window `dest' and
+with the 8-bitformat value `"G'day, mate"' (which must be exactly
+twenty bytes):
+
+     cm_event = Xlib.protocol.event.ClientMessage(
+         window = dest,
+         client_type = HELLO_WORLD,
+         data = (8, "G'day mate\0\0\0\0\0\0\0\0\0\0"))
+
+     dest.send_event(cm_event)
+
+
+
+Tag Table:
+Node: Event Handling83
+Node: Getting Events736
+Node: Selecting Events2997
+Node: Event Types6730
+Node: Sending Events27608
+
+End Tag Table

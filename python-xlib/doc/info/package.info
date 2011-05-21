@@ -1,0 +1,70 @@
+   This is package.info, produced by makeinfo version 4.7 from ../src/package.texi.
+
+
+
+File: package.info,  Node: Package Layout
+
+6 Package Layout
+****************
+
+The Python X Library is distributed as a Python package, named `Xlib'.
+It contains a number of modules providing the main library interface:
+
+`display'
+     Contains the `Display' class, providing the X connection and access
+     to all other X objects and operations.
+
+`error'
+     Contains all `Xlib' exception classes.
+
+`threaded'
+     Imported to set up the library to be thread-safe.
+
+`rdb'
+     Contains `ResourceDB', an X resource database class, and related
+     code.
+
+`X'
+     Contains symbolic names for all basic X protocol constants.
+
+`Xutil'
+     Contains additional constants for mainly the ICCCM standard.
+
+`XK'
+     Contains symbolic names for all X keysyms.
+
+`Xatom'
+     Contains symbolic names for all standard X atoms.
+
+`Xcursorfont'
+     Contains symbolic names for all standard X fonts.
+
+
+   There is also a number of subpackages, but they will mainly be of
+interest to developers of the Xlib itself:
+
+`protocol'
+     The low-level protocol implementation.  Contains definitions of
+     all X request, responses, events and errors, in addition to the
+     core network code.  The high-level object oriented interface
+     provided by `Xlib.display' is merely a wrapper around this package.
+
+`support'
+     Miscellaneous supporting code for handling threads and operating
+     system-specific features.
+
+`xobject'
+     Contains classes for all X objects, which are returned by various
+     display operations.
+
+`ext'
+     Contains various X protocol extensions.  Extensions supported by
+     the server are loaded automatically at the display connection.
+
+
+
+
+Tag Table:
+Node: Package Layout85
+
+End Tag Table
