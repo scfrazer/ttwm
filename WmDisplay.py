@@ -16,10 +16,15 @@ class WmDisplay(object):
             print "Display name '%s' is malformed" % (display_name)
             sys.exit(1)
         except Xlib.error.DisplayConnectionError:
-            print "Connection to X server for display '%s' failed" % (display_name)
+            print "Connection to X server on display '%s' failed" % (display_name)
             sys.exit(1)
 
+        self.config = WmConfig()
+
         self.screens = []
+        num_screens = self.display.screen_count()
+        for screen_num in xrange(num_screens):
+            self.screens.append(WmScreen(self.display.screen(screen_num), self.config))
 
     def run_event_loop(self):
         pass
