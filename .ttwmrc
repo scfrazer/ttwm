@@ -1,0 +1,14 @@
+[Display]
+
+edge_width: 2
+edge_gap: 4
+focused_edge_color: DodgerBlue1
+unfocused_edge_color: Gray
+
+[Keys]
+
+Mod4Mask+h: split_horizontal
+Mod4Mask+v: split_vertical
+Mod4Mask+n: next_stack
+Mod4Mask+p: prev_stack
+Mod4Mask+k: kill_stack
