@@ -10,6 +10,7 @@ class WmScreen(object):
     def __init__(self, display, screen, config):
 
         self.display = display
+        self.config = config
 
         # Get root access
 
@@ -27,24 +28,20 @@ class WmScreen(object):
             print "Another window manager is already runing"
             sys.exit(1)
 
-        # TODO
+        # Grab keys
 
         release_mod = Xlib.X.AnyModifier << 1
-        self.code = self.display.keysym_to_keycode(Xlib.XK.XK_h)
-        print self.code
+        for item in self.config.keymap:
+            (mod_mask, keycode) = item
+            self.root.grab_key(keycode, mod_mask & ~release_mod,
+                               1, Xlib.X.GrabModeAsync, Xlib.X.GrabModeAsync)
 
-        self.root.grab_key(self.code,
-                           Xlib.X.Mod4Mask & ~release_mod,
-                           1,
-                           Xlib.X.GrabModeAsync,
-                           Xlib.X.GrabModeAsync)
-
-        # Setup
+        # Other setup
 
         self.width = screen.width_in_pixels
         self.height = screen.height_in_pixels
-        self.config = config
 
     def handle_key_press(self, event):
-        if event.state & Xlib.X.Mod4Mask and event.detail == self.code:
-            print "Got it"
+        lookup = (event.state, event.detail)
+        if lookup in self.config.keymap:
+            print self.config.keymap[lookup]

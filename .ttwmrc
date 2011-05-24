@@ -7,8 +7,8 @@ unfocused_edge_color: Gray
 
 [Keys]
 
-Mod4Mask+h: split_horizontal
-Mod4Mask+v: split_vertical
-Mod4Mask+n: next_stack
-Mod4Mask+p: prev_stack
-Mod4Mask+k: kill_stack
+Mod4+h: split_horizontal
+Mod4+v: split_vertical
+Mod4+n: next_stack
+Mod4+p: prev_stack
+Mod4+k: kill_stack

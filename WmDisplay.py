@@ -20,7 +20,7 @@ class WmDisplay(object):
             print "Connection to X server on display '%s' failed" % (display_name)
             sys.exit(1)
 
-        self.config = WmConfig()
+        self.config = WmConfig(self.display)
 
         self.screens = []
         num_screens = self.display.screen_count()
