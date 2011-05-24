@@ -2,6 +2,7 @@
 
 import Xlib.display
 import Xlib.error
+import Xlib.X
 import sys
 from WmConfig import WmConfig
 from WmScreen import WmScreen
@@ -31,3 +32,5 @@ class WmDisplay(object):
     def run_event_loop(self):
         while 1:
             event = self.display.next_event()
+            if event.type == Xlib.X.KeyPress:
+                self.screens[0].handle_key_press(event)
