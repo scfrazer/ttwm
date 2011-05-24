@@ -46,5 +46,5 @@ class WmScreen(object):
         self.config = config
 
     def handle_key_press(self, event):
-        if event.state & Xlib.X.Mod4Mask and event.detail == Xlib.XK.XK_h:
+        if event.state & Xlib.X.Mod4Mask and event.detail == self.code:
             print "Got it"
