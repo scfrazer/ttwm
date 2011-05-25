@@ -4,17 +4,28 @@ import Xlib.X
 import Xlib.error
 import Xlib.XK
 import sys
+from WmGroup import WmGroup
 
 class WmScreen(object):
 
     def __init__(self, display, screen, config):
 
         self.display = display
+        self.root = screen.root
         self.config = config
 
-        # Get root access
+        self.get_root()
+        self.grab_keys()
 
-        self.root = screen.root
+        self.groups = {
+            'Default': WmGroup(self.display, self.root, self.config)
+            }
+        self.groups['Default'].claim_all_windows()
+
+    ############################################################################
+
+    def get_root(self):
+
         catch = Xlib.error.CatchError(Xlib.error.BadAccess)
         self.root.change_attributes(event_mask=(Xlib.X.EnterWindowMask
                                                 | Xlib.X.LeaveWindowMask
@@ -28,7 +39,9 @@ class WmScreen(object):
             print "Another window manager is already runing"
             sys.exit(1)
 
-        # Grab keys
+    ############################################################################
+
+    def grab_keys(self):
 
         release_mod = Xlib.X.AnyModifier << 1
         for item in self.config.keymap:
@@ -36,10 +49,7 @@ class WmScreen(object):
             self.root.grab_key(keycode, mod_mask & ~release_mod,
                                1, Xlib.X.GrabModeAsync, Xlib.X.GrabModeAsync)
 
-        # Other setup
-
-        self.width = screen.width_in_pixels
-        self.height = screen.height_in_pixels
+    ############################################################################
 
     def handle_key_press(self, event):
         lookup = (event.state, event.detail)

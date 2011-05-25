@@ -11,6 +11,14 @@ class WmDisplay(object):
 
     def __init__(self, display_name):
 
+        self.setup_display(display_name)
+        self.config = WmConfig(self.display)
+        self.setup_screens()
+
+    ############################################################################
+
+    def setup_display(self, display_name):
+
         try:
             self.display = Xlib.display.Display(display_name)
         except Xlib.error.DisplayNameError:
@@ -20,7 +28,9 @@ class WmDisplay(object):
             print "Connection to X server on display '%s' failed" % (display_name)
             sys.exit(1)
 
-        self.config = WmConfig(self.display)
+    ############################################################################
+
+    def setup_screens(self):
 
         self.screens = []
         num_screens = self.display.screen_count()
@@ -29,8 +39,11 @@ class WmDisplay(object):
                                          self.display.screen(screen_num),
                                          self.config))
 
+    ############################################################################
+
     def run_event_loop(self):
         while 1:
             event = self.display.next_event()
+            # TODO
             if event.type == Xlib.X.KeyPress:
                 self.screens[0].handle_key_press(event)
