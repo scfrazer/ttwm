@@ -1,5 +1,7 @@
 # WmGroup.py
 
+from WmStack import WmStack
+
 class WmGroup(object):
 
     def __init__(self, display, root, config):
@@ -8,7 +10,14 @@ class WmGroup(object):
         self.root = root
         self.config = config
 
+        self.init_stacks()
+
     ############################################################################
 
     def claim_all_windows(self):
         pass
+
+    ############################################################################
+
+    def init_stacks(self):
+        self.stacks = []
