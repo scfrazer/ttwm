@@ -18,9 +18,8 @@ class WmScreen(object):
         self.grab_keys()
 
         self.groups = {
-            'Default': WmGroup(self.display, self.root, self.config)
+            'Default': WmGroup(self.display, self.root, self.config, claim_all_windows=True)
             }
-        self.groups['Default'].claim_all_windows()
 
     ############################################################################
 
