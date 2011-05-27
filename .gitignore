@@ -1,3 +1,4 @@
 *.pyc
+*flymake*
 TAGS
 hold
