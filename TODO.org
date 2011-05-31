@@ -1,0 +1,10 @@
+#+title: TODO
+
+* TODO Stack decorations [0/3]
+  - [ ] Border (can be done automatically?)
+  - [ ] Title bar -- need to figure out fonts
+  - [ ] Resize children to fill non-decoration part
+
+* TODO When a window is destroyed, remove it from the save set
+
+* TODO Catch exceptions and keyboard interrupts and exit gracefully

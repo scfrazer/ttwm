@@ -1,6 +1,6 @@
 # WmDisplay.py
 
-from Xlib.display import Display
+import Xlib.display as Xdisplay
 import Xlib.error as Xerror
 import Xlib.X as X
 import sys
@@ -20,7 +20,7 @@ class WmDisplay(object):
     def setup_display(self, display_name):
 
         try:
-            self.display = Display(display_name)
+            self.display = Xdisplay.Display(display_name)
         except Xerror.DisplayNameError:
             print "Display name '%s' is malformed" % (display_name)
             sys.exit(1)
