@@ -2,8 +2,8 @@
 
 import sys
 import ConfigParser
-import Xlib.X
-import Xlib.XK
+import Xlib.X as X
+import Xlib.XK as XK
 
 class WmConfig(object):
 
@@ -85,13 +85,13 @@ class WmConfig(object):
             (modifier, key) = key_def.split('+')
 
             if modifier == 'mod4':
-                mod_mask = Xlib.X.Mod4Mask
+                mod_mask = X.Mod4Mask
             elif modifier == 'mod3':
-                mod_mask = Xlib.X.Mod3Mask
+                mod_mask = X.Mod3Mask
             elif modifier == 'mod2':
-                mod_mask = Xlib.X.Mod2Mask
+                mod_mask = X.Mod2Mask
             elif modifier == 'mod1':
-                mod_mask = Xlib.X.Mod1Mask
+                mod_mask = X.Mod1Mask
             else:
                 print "%s?" % (modifier)
                 sys.exit(1)
@@ -101,5 +101,5 @@ class WmConfig(object):
                 print "Unknown command '%s' in 'Keys' section" % (cmd)
                 sys.exit(1)
 
-            keycode = display.keysym_to_keycode(Xlib.XK.string_to_keysym(key))
+            keycode = display.keysym_to_keycode(XK.string_to_keysym(key))
             self.keymap[(mod_mask, keycode)] = cmd

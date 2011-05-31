@@ -1,8 +1,8 @@
 # WmDisplay.py
 
-import Xlib.display
-import Xlib.error
-import Xlib.X
+from Xlib.display import Display
+import Xlib.error as Xerror
+import Xlib.X as X
 import sys
 from WmConfig import WmConfig
 from WmScreen import WmScreen
@@ -20,11 +20,11 @@ class WmDisplay(object):
     def setup_display(self, display_name):
 
         try:
-            self.display = Xlib.display.Display(display_name)
-        except Xlib.error.DisplayNameError:
+            self.display = Display(display_name)
+        except Xerror.DisplayNameError:
             print "Display name '%s' is malformed" % (display_name)
             sys.exit(1)
-        except Xlib.error.DisplayConnectionError:
+        except Xerror.DisplayConnectionError:
             print "Connection to X server on display '%s' failed" % (display_name)
             sys.exit(1)
 
@@ -45,5 +45,5 @@ class WmDisplay(object):
         while 1:
             event = self.display.next_event()
             # TODO
-            if event.type == Xlib.X.KeyPress:
+            if event.type == X.KeyPress:
                 self.screens[0].handle_key_press(event)

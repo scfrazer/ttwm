@@ -1,6 +1,6 @@
 # WmStack.py
 
-import Xlib.X
+import Xlib.X as X
 
 class WmStack(object):
 
@@ -29,7 +29,7 @@ class WmStack(object):
 
         self.parent_window = self.root.create_window(self.top, self.left, self.width, self.height,
                                                      self.config.display_opts['border_width'],
-                                                     Xlib.X.CopyFromParent)
+                                                     X.CopyFromParent)
         self.parent_window.map()
 
     ############################################################################
@@ -41,7 +41,8 @@ class WmStack(object):
             if not window.get_wm_name():
                 continue
             attrs = window.get_attributes()
-            if attrs.override_redirect or attrs.map_state == Xlib.X.IsUnmapped:
+            if attrs.override_redirect or attrs.map_state == X.IsUnmapped:
                 continue
             self.windows.append(window)
+            window.change_save_set(X.SetModeInsert)
             window.reparent(self.parent_window, 10, 10)  # TODO
