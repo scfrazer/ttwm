@@ -11,10 +11,12 @@ class WmStack(object):
         self.display = display
         self.root = root
         self.config = config
+
+        border_width = self.config.display_opts['border_width']
         self.top = top
         self.left = left
-        self.width = width
-        self.height = height
+        self.width = width - 2 * border_width
+        self.height = height - 2 * border_width
 
         self.windows = []
 
@@ -27,9 +29,12 @@ class WmStack(object):
 
     def create_parent_window(self):
 
+        # colormap = self.root.get_attributes().colormap
+        # border = colormap.alloc_color(0xff, 0x00, 0x00)
         self.parent_window = self.root.create_window(self.top, self.left, self.width, self.height,
                                                      self.config.display_opts['border_width'],
-                                                     X.CopyFromParent)
+                                                     X.CopyFromParent, X.InputOutput, X.CopyFromParent,
+                                                     border_pixel=0xFF0000)
         self.parent_window.map()
 
     ############################################################################

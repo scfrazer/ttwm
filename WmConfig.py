@@ -17,9 +17,14 @@ class WmConfig(object):
 
         self.display_opts = {}
         self.display_opts['border_width'] = 1
-        self.display_opts['focused_color'] = 'DodgerBlue1'
-        self.display_opts['other_focused_color'] = 'DarkBlue'
-        self.display_opts['unfocused_color'] = 'Gray'
+        self.display_opts['active_selected_fg'] = '#ffffff'
+        self.display_opts['active_selected_bg'] = '#708090'
+        self.display_opts['active_unselected_fg'] = '#a0a0a0'
+        self.display_opts['active_unselected_bg'] = '#607080'
+        self.display_opts['inactive_selected_fg'] = '#c0c0c0'
+        self.display_opts['inactive_selected_bg'] = '#607080'
+        self.display_opts['inactive_unselected_fg'] = '#a0a0a0'
+        self.display_opts['inactive_unselected_bg'] = '#506070'
 
         self.parse_display_options(config)
 
