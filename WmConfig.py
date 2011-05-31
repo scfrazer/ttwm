@@ -16,10 +16,10 @@ class WmConfig(object):
         # Display options
 
         self.display_opts = {}
-        self.display_opts['edge_width'] = 2
-        self.display_opts['edge_gap'] = 4
-        self.display_opts['focused_edge_color'] = 'DodgerBlue1'
-        self.display_opts['unfocused_edge_color'] = 'Gray'
+        self.display_opts['border_width'] = 1
+        self.display_opts['focused_color'] = 'DodgerBlue1'
+        self.display_opts['other_focused_color'] = 'DarkBlue'
+        self.display_opts['unfocused_color'] = 'Gray'
 
         self.parse_display_options(config)
 
@@ -66,7 +66,10 @@ class WmConfig(object):
                 print "Unknown option '%s' in 'Display' section" % (option)
                 sys.exit(1)
             value = config.get(section, option)
-            self.display_opts[option] = value
+            if option in ['border_width']:
+                self.display_opts[option] = int(value)
+            else:
+                self.display_opts[option] = value
 
     ############################################################################
 

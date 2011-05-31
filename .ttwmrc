@@ -1,9 +1,9 @@
 [Display]
 
-edge_width: 2
-edge_gap: 4
-focused_edge_color: DodgerBlue1
-unfocused_edge_color: Gray
+border_width: 1
+focused_color: DodgerBlue1
+other_focused_color: DarkBlue
+unfocused_color: Gray
 
 [Keys]
 

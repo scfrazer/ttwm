@@ -17,18 +17,15 @@ class WmScreen(object):
         self.get_root()
         self.grab_keys()
 
-        self.groups = {
-            'Default': WmGroup(self.display, self.root, self.config, claim_all_windows=True)
-            }
+        self.groups = {'Default': WmGroup(self.display, self.root, self.config,
+                                          claim_all_windows=True)}
 
     ############################################################################
 
     def get_root(self):
 
         catch = Xlib.error.CatchError(Xlib.error.BadAccess)
-        self.root.change_attributes(event_mask=(Xlib.X.EnterWindowMask
-                                                | Xlib.X.LeaveWindowMask
-                                                | Xlib.X.PropertyChangeMask
+        self.root.change_attributes(event_mask=(Xlib.X.PropertyChangeMask
                                                 | Xlib.X.FocusChangeMask
                                                 | Xlib.X.SubstructureRedirectMask
                                                 | Xlib.X.SubstructureNotifyMask),
@@ -52,5 +49,6 @@ class WmScreen(object):
 
     def handle_key_press(self, event):
         lookup = (event.state, event.detail)
+        # TODO
         if lookup in self.config.keymap:
             print self.config.keymap[lookup]

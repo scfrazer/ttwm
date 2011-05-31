@@ -1,5 +1,7 @@
 # WmStack.py
 
+import Xlib.X
+
 class WmStack(object):
 
     def __init__(self, display, root, config,
@@ -16,21 +18,30 @@ class WmStack(object):
 
         self.windows = []
 
+        self.create_parent_window()
+
         if claim_all_windows:
             self.claim_all_windows()
 
-        if not self.windows:
-            self.draw_empty_stack()
+    ############################################################################
+
+    def create_parent_window(self):
+
+        self.parent_window = self.root.create_window(self.top, self.left, self.width, self.height,
+                                                     self.config.display_opts['border_width'],
+                                                     Xlib.X.CopyFromParent)
+        self.parent_window.map()
 
     ############################################################################
 
     def claim_all_windows(self):
-        # TODO
-        print self.width
-        print self.height
 
-    ############################################################################
-
-    def draw_empty_stack(self):
-        # TODO
-        pass
+        windows = self.root.query_tree().children
+        for window in windows:
+            if not window.get_wm_name():
+                continue
+            attrs = window.get_attributes()
+            if attrs.override_redirect or attrs.map_state == Xlib.X.IsUnmapped:
+                continue
+            self.windows.append(window)
+            window.reparent(self.parent_window, 10, 10)  # TODO
