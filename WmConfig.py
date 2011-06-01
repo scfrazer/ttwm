@@ -28,6 +28,10 @@ class WmConfig(object):
 
         self.parse_display_options(config)
 
+        colormap = display.screen().default_colormap
+        color = colormap.alloc_named_color(self.display_opts['active_selected_bg'])
+        self.display_opts['border_pixel'] = color.pixel
+
         # Keys
 
         self.keymap = {}
