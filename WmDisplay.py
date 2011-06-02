@@ -13,6 +13,7 @@ class WmDisplay(object):
 
         self.setup_display(display_name)
         self.config = WmConfig(self.display)
+        self.setup_gcs()
         self.setup_screens()
 
     ############################################################################
@@ -27,6 +28,16 @@ class WmDisplay(object):
         except Xerror.DisplayConnectionError:
             print "Connection to X server on display '%s' failed" % (display_name)
             sys.exit(1)
+
+    ############################################################################
+
+    def setup_gcs(self):
+
+        self.gcs = {}
+        title_font = self.display.open_font(self.config.display_opts['title_font'])
+        query = title_font.query()
+        print query.font_ascent
+        print query.font_descent
 
     ############################################################################
 

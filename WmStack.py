@@ -32,7 +32,7 @@ class WmStack(object):
         self.parent_window = self.root.create_window(self.top, self.left, self.width, self.height,
                                                      self.config.display_opts['border_width'],
                                                      X.CopyFromParent, X.InputOutput, X.CopyFromParent,
-                                                     border_pixel=self.config.display_opts['border_pixel'])
+                                                     border_pixel=self.config.display_opts['active_border_pixel'])
         self.parent_window.map()
 
     ############################################################################
@@ -48,4 +48,4 @@ class WmStack(object):
                 continue
             self.windows.append(window)
             window.change_save_set(X.SetModeInsert)
-            window.reparent(self.parent_window, 10, 10)  # TODO
+            window.reparent(self.parent_window, 0, 30)  # TODO

@@ -16,7 +16,9 @@ class WmConfig(object):
         # Display options
 
         self.display_opts = {}
+
         self.display_opts['border_width'] = 1
+
         self.display_opts['active_selected_fg'] = '#ffffff'
         self.display_opts['active_selected_bg'] = '#708090'
         self.display_opts['active_unselected_fg'] = '#a0a0a0'
@@ -26,11 +28,10 @@ class WmConfig(object):
         self.display_opts['inactive_unselected_fg'] = '#a0a0a0'
         self.display_opts['inactive_unselected_bg'] = '#506070'
 
-        self.parse_display_options(config)
+        self.display_opts['title_font'] = '-*-helvetica-medium-r-*-*-12-*'
 
-        colormap = display.screen().default_colormap
-        color = colormap.alloc_named_color(self.display_opts['active_selected_bg'])
-        self.display_opts['border_pixel'] = color.pixel
+        self.parse_display_options(config)
+        self.setup_border_colors(display)
 
         # Keys
 
@@ -79,6 +80,18 @@ class WmConfig(object):
                 self.display_opts[option] = int(value)
             else:
                 self.display_opts[option] = value
+
+    ############################################################################
+
+    def setup_border_colors(self, display):
+
+        colormap = display.screen().default_colormap
+
+        color = colormap.alloc_named_color(self.display_opts['active_selected_bg'])
+        self.display_opts['active_border_pixel'] = color.pixel
+
+        color = colormap.alloc_named_color(self.display_opts['inactive_unselected_bg'])
+        self.display_opts['inactive_border_pixel'] = color.pixel
 
     ############################################################################
 
