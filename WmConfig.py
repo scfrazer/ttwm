@@ -13,36 +13,44 @@ class WmConfig(object):
 
         config = self.read_config_file()
 
-        # Display options
+        # Display
 
-        self.display_opts = {}
+        self.display = {}
+        self.display['border_width'] = 1
 
-        self.display_opts['border_width'] = 1
+        self.parse_display(config)
 
-        self.display_opts['active_selected_fg'] = '#ffffff'
-        self.display_opts['active_selected_bg'] = '#708090'
-        self.display_opts['active_unselected_fg'] = '#a0a0a0'
-        self.display_opts['active_unselected_bg'] = '#607080'
-        self.display_opts['inactive_selected_fg'] = '#c0c0c0'
-        self.display_opts['inactive_selected_bg'] = '#607080'
-        self.display_opts['inactive_unselected_fg'] = '#a0a0a0'
-        self.display_opts['inactive_unselected_bg'] = '#506070'
+        # Colors
 
-        self.display_opts['title_font'] = '-*-helvetica-medium-r-*-*-12-*'
+        self.colors = {}
+        self.colors['active_selected_fg'] = '#ffffff'
+        self.colors['active_selected_bg'] = '#708090'
+        self.colors['active_unselected_fg'] = '#a0a0a0'
+        self.colors['active_unselected_bg'] = '#607080'
+        self.colors['inactive_selected_fg'] = '#c0c0c0'
+        self.colors['inactive_selected_bg'] = '#607080'
+        self.colors['inactive_unselected_fg'] = '#a0a0a0'
+        self.colors['inactive_unselected_bg'] = '#506070'
 
-        self.parse_display_options(config)
-        self.setup_border_colors(display)
+        self.parse_colors(config)
+
+        # Fonts
+
+        self.fonts = {}
+        self.fonts['title'] = '-*-helvetica-medium-r-*-*-12-*'
+
+        self.parse_fonts(config)
 
         # Keys
 
-        self.keymap = {}
+        self.keys = {}
         self.commands = ['split_horizontal',
                          'split_vertical',
                          'next_stack',
                          'prev_stack',
                          'kill_stack']
 
-        self.parse_key_defs(display, config)
+        self.parse_keys(display, config)
 
     ############################################################################
 
@@ -64,7 +72,7 @@ class WmConfig(object):
 
     ############################################################################
 
-    def parse_display_options(self, config):
+    def parse_display(self, config):
 
         section = 'Display'
 
@@ -72,30 +80,50 @@ class WmConfig(object):
             return
 
         for option in config.options(section):
-            if option not in self.display_opts:
-                print "Unknown option '%s' in 'Display' section" % (option)
+            if option not in self.display:
+                print "Unknown option '%s' in '%s' section" % (option, section)
                 sys.exit(1)
             value = config.get(section, option)
             if option in ['border_width']:
-                self.display_opts[option] = int(value)
+                self.display[option] = int(value)
             else:
-                self.display_opts[option] = value
+                self.display[option] = value
 
     ############################################################################
 
-    def setup_border_colors(self, display):
+    def parse_colors(self, config):
 
-        colormap = display.screen().default_colormap
+        section = 'Colors'
 
-        color = colormap.alloc_named_color(self.display_opts['active_selected_bg'])
-        self.display_opts['active_border_pixel'] = color.pixel
+        if section not in config.sections():
+            return
 
-        color = colormap.alloc_named_color(self.display_opts['inactive_unselected_bg'])
-        self.display_opts['inactive_border_pixel'] = color.pixel
+        for option in config.options(section):
+            if option not in self.colors:
+                print "Unknown color '%s' in '%s' section" % (option, section)
+                sys.exit(1)
+            value = config.get(section, option)
+            self.colors[option] = value
 
     ############################################################################
 
-    def parse_key_defs(self, display, config):
+    def parse_fonts(self, config):
+
+        section = 'Fonts'
+
+        if section not in config.sections():
+            return
+
+        for option in config.options(section):
+            if option not in self.fonts:
+                print "Unknown font '%s' in '%s' section" % (option, section)
+                sys.exit(1)
+            value = config.get(section, option)
+            self.fonts[option] = value
+
+    ############################################################################
+
+    def parse_keys(self, display, config):
 
         section = 'Keys'
 
@@ -120,8 +148,8 @@ class WmConfig(object):
 
             cmd = config.get(section, key_def)
             if cmd not in self.commands:
-                print "Unknown command '%s' in 'Keys' section" % (cmd)
+                print "Unknown command '%s' in '%s' section" % (cmd, section)
                 sys.exit(1)
 
             keycode = display.keysym_to_keycode(XK.string_to_keysym(key))
-            self.keymap[(mod_mask, keycode)] = cmd
+            self.keys[(mod_mask, keycode)] = cmd
