@@ -27,7 +27,9 @@ class WmStack(object):
         if claim_all_windows:
             self.claim_all_windows()
 
+        self.tabs = []
         self.update_tabs()
+
         self.parent_window.map()
 
     ############################################################################
@@ -52,11 +54,39 @@ class WmStack(object):
                 continue
             self.windows.append(window)
             window.change_save_set(X.SetModeInsert)
-            window.reparent(self.parent_window, 0, 30)  # TODO
+            window.reparent(self.parent_window, 0, self.config.display['tab_height'])
 
     ############################################################################
 
     def update_tabs(self):
 
-        # draw_text ( gc, x, y, text, onerror = None )
-        pass
+        # TODO Destroy existing tabs
+
+        if self.tabs:
+            pass
+
+        stack_width = self.width - self.config.display['border_width'] * 2
+        tab_width = stack_width / len(self.windows)
+        tab_width_leftover = stack_width % len(self.windows)
+
+        # TODO Limit number of tabs
+
+        self.tabs = []
+        left_edge = 0
+        for (idx, window) in enumerate(self.windows):
+
+            width = tab_width
+            if idx < tab_width_leftover:
+                width += 1
+
+            tab = self.parent_window.create_window(0, left_edge, width,
+                                                   self.config.display['tab_height'] - 2,
+                                                   1,
+                                                   X.CopyFromParent, X.InputOutput, X.CopyFromParent,
+                                                   background_pixel=self.pixel_colors['active_selected_bg'],
+                                                   border_pixel=self.pixel_colors['active_selected_fg'])
+            left_edge += width
+
+            tab.draw_text(self.gcs['active_selected'], 2, 2, "TODO")
+            tab.map()
+            self.tabs.append(tab)

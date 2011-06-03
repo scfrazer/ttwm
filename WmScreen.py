@@ -55,11 +55,18 @@ class WmScreen(object):
 
         self.gcs = {}
 
-        title_font = self.display.open_font(self.config.fonts['title'])
-        # self.gcs['title_font'] = self.root.create_gc(font=title_font, foreground=fg, background=bg)
-        query = title_font.query()
-        print query.font_ascent
-        print query.font_descent
+        font = self.display.open_font(self.config.fonts['title'])
+
+        query = font.query()
+        # TODO 6 = 2 pad + 1 border on top/bottom ... should be configurable
+        self.config.display['tab_height'] = query.font_ascent + query.font_descent + 6
+
+        for name in ['active_selected', 'active_unselected',
+                     'inactive_selected', 'inactive_unselected']:
+
+            self.gcs[name] = self.root.create_gc(font=font,
+                                                 foreground=self.pixel_colors[name + '_fg'],
+                                                 background=self.pixel_colors[name + '_bg'])
 
     ############################################################################
 
