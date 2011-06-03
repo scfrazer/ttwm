@@ -27,10 +27,10 @@ class WmStack(object):
         if claim_all_windows:
             self.claim_all_windows()
 
+        self.parent_window.map()
+
         self.tabs = []
         self.update_tabs()
-
-        self.parent_window.map()
 
     ############################################################################
 
@@ -65,9 +65,8 @@ class WmStack(object):
         if self.tabs:
             pass
 
-        stack_width = self.width - self.config.display['border_width'] * 2
-        tab_width = stack_width / len(self.windows)
-        tab_width_leftover = stack_width % len(self.windows)
+        tab_width = self.width / len(self.windows)
+        tab_width_leftover = self.width % len(self.windows)
 
         # TODO Limit number of tabs
 
@@ -79,14 +78,17 @@ class WmStack(object):
             if idx < tab_width_leftover:
                 width += 1
 
-            tab = self.parent_window.create_window(0, left_edge, width,
-                                                   self.config.display['tab_height'] - 2,
-                                                   1,
-                                                   X.CopyFromParent, X.InputOutput, X.CopyFromParent,
-                                                   background_pixel=self.pixel_colors['active_selected_bg'],
-                                                   border_pixel=self.pixel_colors['active_selected_fg'])
+            tab = self.parent_window.create_window(left_edge, 0, width, self.config.display['tab_height'],
+                                                   0, X.CopyFromParent, X.InputOutput, X.CopyFromParent,
+                                                   background_pixel=self.pixel_colors['active_selected_bg'])
             left_edge += width
 
-            tab.draw_text(self.gcs['active_selected'], 2, 2, "TODO")
             tab.map()
+
+            title_text = window.get_wm_name()
+            title_text_extents = self.gcs['active_selected'].query_text_extents(title_text)
+            tab.draw_text(self.gcs['active_selected'],
+                          (width - title_text_extents.overall_width) / 2, 13,  # TODO
+                          title_text)
+
             self.tabs.append(tab)

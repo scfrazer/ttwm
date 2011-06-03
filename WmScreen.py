@@ -58,8 +58,8 @@ class WmScreen(object):
         font = self.display.open_font(self.config.fonts['title'])
 
         query = font.query()
-        # TODO 6 = 2 pad + 1 border on top/bottom ... should be configurable
-        self.config.display['tab_height'] = query.font_ascent + query.font_descent + 6
+        # TODO 4 = 1 pad + 1 border on top/bottom ... should be configurable
+        self.config.display['tab_height'] = query.font_ascent + query.font_descent + 4
 
         for name in ['active_selected', 'active_unselected',
                      'inactive_selected', 'inactive_unselected']:
