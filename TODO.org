@@ -1,10 +1,12 @@
 #+title: TODO
 
-* TODO Stack decorations [1/3]
+* TODO Stack decorations [2/4]
   - [X] Border (can be done automatically?)
-  - [ ] Title bar -- need to figure out fonts
+  - [X] Title bar -- need to figure out fonts
+  - [ ] Add borders back and make configurable color
   - [ ] Resize children to fill non-decoration part
 
 * TODO When a window is destroyed, remove it from the save set
 
-* TODO Catch exceptions and keyboard interrupts and exit gracefully
+* TODO Catch exceptions and keyboard interrupts and exit gracefully [0/1]
+  - [ ] Unmap and destroy windows/contexts/etc

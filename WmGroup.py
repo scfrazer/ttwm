@@ -4,9 +4,14 @@ from WmStack import WmStack
 
 class WmGroup(object):
 
-    def __init__(self, display, root, config, pixel_colors, gcs, claim_all_windows=False):
+    def __init__(self, wm_data):
 
-        geom = root.get_geometry()
-        self.stacks = [WmStack(display, root, config, pixel_colors, gcs,
-                               top=0, left=0, width=geom.width, height=geom.height,
-                               claim_all_windows=claim_all_windows)]
+        self.wm_data = wm_data
+
+        geom = wm_data.root.get_geometry()
+        self.stacks = [WmStack(wm_data, top=0, left=0, width=geom.width, height=geom.height)]
+
+    ############################################################################
+
+    def add_windows(self, windows):
+        self.stacks[0].add_windows(windows)
