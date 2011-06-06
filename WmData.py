@@ -37,8 +37,7 @@ class WmData(object):
         self.config.fonts['title_height'] = query.font_ascent + query.font_descent
         self.config.display['tab_height'] = self.config.fonts['title_height'] + 4
 
-        for name in ['active_selected', 'active_unselected',
-                     'inactive_selected', 'inactive_unselected']:
+        for name in ['focus_top', 'focus_und', 'unfocus_top', 'unfocus_und']:
 
             self.gcs[name] = self.root.create_gc(font=font,
                                                  foreground=self.pixel_colors[name + '_fg'],

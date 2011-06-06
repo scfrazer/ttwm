@@ -23,14 +23,22 @@ class WmConfig(object):
         # Colors
 
         self.colors = {}
-        self.colors['active_selected_fg'] = '#ffffff'
-        self.colors['active_selected_bg'] = '#708090'
-        self.colors['active_unselected_fg'] = '#a0a0a0'
-        self.colors['active_unselected_bg'] = '#607080'
-        self.colors['inactive_selected_fg'] = '#c0c0c0'
-        self.colors['inactive_selected_bg'] = '#607080'
-        self.colors['inactive_unselected_fg'] = '#a0a0a0'
-        self.colors['inactive_unselected_bg'] = '#506070'
+
+        self.colors['focus_top_fg'] = '#ffffff'
+        self.colors['focus_top_bg'] = '#607080'
+        self.colors['focus_top_bo'] = '#708090'
+
+        self.colors['focus_und_fg'] = '#a0a0a0'
+        self.colors['focus_und_bg'] = '#405060'
+        self.colors['focus_und_bo'] = '#607080'
+
+        self.colors['unfocus_top_fg'] = '#c0c0c0'
+        self.colors['unfocus_top_bg'] = '#405060'
+        self.colors['unfocus_top_bo'] = '#607080'
+
+        self.colors['unfocus_und_fg'] = '#a0a0a0'
+        self.colors['unfocus_und_bg'] = '#304050'
+        self.colors['unfocus_und_bo'] = '#506070'
 
         self.parse_colors(config)
 

@@ -18,7 +18,7 @@ class WmStack(object):
         self.tab_windows = []
         self.right_windows = []
 
-        self.active_window_num = 0  # This is an index into self.tabbed_windows
+        self.top_tab_num = 0  # This is an index into self.tabbed_windows
 
         self.create_parent_window()
         self.parent_window.map()
@@ -34,7 +34,7 @@ class WmStack(object):
             self.top, self.left, self.width, self.height,
             self.wm_data.config.display['border_width'],
             X.CopyFromParent, X.InputOutput, X.CopyFromParent,
-            border_pixel=self.wm_data.pixel_colors['active_selected_bg'])
+            border_pixel=self.wm_data.pixel_colors['focus_top_bg'])
 
     ############################################################################
 
@@ -60,16 +60,20 @@ class WmStack(object):
             if idx < tab_width_leftover:
                 width += 1
 
-            if idx == self.active_window_num:
-                gc = self.wm_data.gcs['active_selected']
-                background_pixel = self.wm_data.pixel_colors['active_selected_bg']
+            if idx == self.top_tab_num:
+                gc = self.wm_data.gcs['focus_top']
+                background_pixel = self.wm_data.pixel_colors['focus_top_bg']
+                border_pixel = self.wm_data.pixel_colors['focus_top_bo']
             else:
-                gc = self.wm_data.gcs['active_unselected']
-                background_pixel = self.wm_data.pixel_colors['active_unselected_bg']
+                gc = self.wm_data.gcs['focus_und']
+                background_pixel = self.wm_data.pixel_colors['focus_und_bg']
+                border_pixel = self.wm_data.pixel_colors['focus_und_bo']
 
             tab = self.parent_window.create_window(
-                left_edge, 0, width, self.wm_data.config.display['tab_height'],
-                0, X.CopyFromParent, X.InputOutput, X.CopyFromParent,
+                left_edge, 0,
+                width - 2, self.wm_data.config.display['tab_height'] - 2,  # -2 for border
+                1, X.CopyFromParent, X.InputOutput, X.CopyFromParent,
+                border_pixel=border_pixel,
                 background_pixel=background_pixel)
 
             left_edge += width
@@ -79,7 +83,8 @@ class WmStack(object):
             title_text = window.get_wm_name()
             title_text_extents = gc.query_text_extents(title_text)
             tab.draw_text(gc, (width - title_text_extents.overall_width) / 2,
-                          self.wm_data.config.fonts['title_height'], title_text)
+                          self.wm_data.config.fonts['title_height'] - 2,  # -2 for border
+                          title_text)
 
             self.tabs.append(tab)
 

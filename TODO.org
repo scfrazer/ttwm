@@ -1,9 +1,9 @@
 #+title: TODO
 
-* TODO Stack decorations [2/4]
+* TODO Stack decorations [3/4]
   - [X] Border (can be done automatically?)
   - [X] Title bar -- need to figure out fonts
-  - [ ] Add borders back and make configurable color
+  - [X] Add borders back and make configurable color
   - [ ] Resize children to fill non-decoration part
 
 * TODO When a window is destroyed, remove it from the save set

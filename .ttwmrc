@@ -4,14 +4,21 @@ border_width: 1
 
 [Colors]
 
-active_selected_fg: #ffffff
-active_selected_bg: #708090
-active_unselected_fg: #a0a0a0
-active_unselected_bg: #607080
-inactive_selected_fg: #c0c0c0
-inactive_selected_bg: #607080
-inactive_unselected_fg: #a0a0a0
-inactive_unselected_bg: #506070
+focus_top_fg: #ffffff
+focus_top_bg: #607080
+focus_top_bo: #708090
+
+focus_und_fg: #a0a0a0
+focus_und_bg: #405060
+focus_und_bo: #607080
+
+unfocus_top_fg: #c0c0c0
+unfocus_top_bg: #405060
+unfocus_top_bo: #607080
+
+unfocus_und_fg: #a0a0a0
+unfocus_und_bg: #304050
+unfocus_und_bo: #506070
 
 [Fonts]
 
