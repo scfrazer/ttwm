@@ -70,7 +70,7 @@ class WmStack(object):
                 border_pixel = self.wm_data.pixel_colors['focus_und_bo']
 
             tab = self.parent_window.create_window(
-                left_edge, 0,
+                left_edge, -1,  # -1 so it's flush with the parent border
                 width - 2, self.wm_data.config.display['tab_height'] - 2,  # -2 for border
                 1, X.CopyFromParent, X.InputOutput, X.CopyFromParent,
                 border_pixel=border_pixel,
@@ -95,7 +95,9 @@ class WmStack(object):
         # TODO Limit number of tabs
 
         for window in windows:
-            window.reparent(self.parent_window, 0, self.wm_data.config.display['tab_height'])
+            y_offset = self.wm_data.config.display['tab_height'] - 1  # -1 to match tabs
+            window.reparent(self.parent_window, 0, y_offset)
+            window.configure(width=self.width, height=self.height - y_offset)
             self.tab_windows.insert(0, window)
 
         self.update_tabs()
