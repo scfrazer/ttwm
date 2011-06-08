@@ -10,8 +10,16 @@ class WmGroup(object):
 
         geom = wm_data.root.get_geometry()
         self.stacks = [WmStack(wm_data, top=0, left=0, width=geom.width, height=geom.height)]
+        self.focused_stack_num = 0
 
     ############################################################################
 
     def add_windows(self, windows):
         self.stacks[0].add_windows(windows)
+
+    ############################################################################
+
+    def do_cmd(self, cmd):
+
+        if cmd in ['next_window', 'prev_window']:
+            self.stacks[self.focused_stack_num].do_cmd(cmd)

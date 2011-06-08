@@ -26,8 +26,5 @@ title: -*-helvetica-medium-r-*-*-12-*
 
 [Keys]
 
-Mod4+h: split_horizontal
-Mod4+v: split_vertical
-Mod4+n: next_stack
-Mod4+p: prev_stack
-Mod4+k: kill_stack
+Mod4+n: next_window
+Mod4+p: prev_window

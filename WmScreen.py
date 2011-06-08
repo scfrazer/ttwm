@@ -19,6 +19,7 @@ class WmScreen(object):
 
         self.groups = {'Default': WmGroup(self.wm_data)}
         self.groups['Default'].add_windows(self.windows)
+        self.active_group = 'Default'
 
     ############################################################################
 
@@ -63,7 +64,14 @@ class WmScreen(object):
     ############################################################################
 
     def handle_key_press(self, event):
+
         lookup = (event.state, event.detail)
-        # TODO
         if lookup in self.wm_data.config.keys:
-            print self.wm_data.config.keys[lookup]
+
+            cmd = self.wm_data.config.keys[lookup]
+
+            if cmd in ['next_window', 'prev_window']:
+                self.groups[self.active_group].do_cmd(cmd)
+                return True
+
+        return False

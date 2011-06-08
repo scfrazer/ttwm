@@ -18,13 +18,12 @@ class WmStack(object):
         self.tab_windows = []
         self.right_windows = []
 
-        self.top_tab_num = 0  # This is an index into self.tabbed_windows
-
         self.create_parent_window()
         self.parent_window.map()
 
         self.tabs = []
         self.update_tabs()
+        self.top_tab_num = 0  # This is an index into self.tabbed_windows
 
     ############################################################################
 
@@ -101,3 +100,29 @@ class WmStack(object):
             self.tab_windows.insert(0, window)
 
         self.update_tabs()
+
+    ############################################################################
+
+    def do_cmd(self, cmd):
+
+        if cmd in ['next_window', 'prev_window']:
+
+            if len(self.tab_windows) < 2:
+                return
+
+            # TODO Handle extra left/right tabs
+
+            if cmd == 'next_window':
+                new_top_tab_num = self.top_tab_num + 1
+                if new_top_tab_num >= len(self.tab_windows):
+                    new_top_tab_num = 0
+            else:
+                new_top_tab_num = self.top_tab_num - 1
+                if new_top_tab_num < 0:
+                    new_top_tab_num = len(self.tab_windows) - 1
+
+            self.tab_windows[new_top_tab_num].configure(stack_mode=X.Above)
+
+            # TODO Change tab colors and raise new one
+
+            self.top_tab_num = new_top_tab_num

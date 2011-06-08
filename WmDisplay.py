@@ -46,4 +46,6 @@ class WmDisplay(object):
             event = self.display.next_event()
             # TODO
             if event.type == X.KeyPress:
-                self.screens[0].handle_key_press(event)
+                for screen in self.screens:
+                    if screen.handle_key_press(event):
+                        break

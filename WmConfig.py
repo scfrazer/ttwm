@@ -52,11 +52,8 @@ class WmConfig(object):
         # Keys
 
         self.keys = {}
-        self.commands = ['split_horizontal',
-                         'split_vertical',
-                         'next_stack',
-                         'prev_stack',
-                         'kill_stack']
+        self.commands = ['next_window',
+                         'prev_window']
 
         self.parse_keys(display, config)
 
@@ -137,6 +134,8 @@ class WmConfig(object):
 
         if section not in config.sections():
             return
+
+        # TODO Handle multiple modifiers
 
         for key_def in config.options(section):
 
