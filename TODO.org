@@ -1,9 +1,10 @@
 #+title: TODO
 
-* TODO Switch windows using keys
-
 * TODO Switch windows using tabs
-  window.configure(stack_mode=X.Above)
+
+* TODO Handle new windows
+
+* TODO Handle destoryed windows
 
 * TODO When a window is destroyed, remove it from the save set
 
