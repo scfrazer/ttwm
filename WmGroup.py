@@ -1,6 +1,7 @@
 # WmGroup.py
 
 import logging
+import Xlib.X as X
 from WmStack import WmStack
 
 class WmGroup(object):
@@ -25,3 +26,10 @@ class WmGroup(object):
 
         if cmd in ['next_window', 'prev_window']:
             self.stacks[self.focused_stack_num].do_cmd(cmd)
+
+    ############################################################################
+
+    def handle_event(self, event):
+
+        if event.type in [X.MapRequest, X.ConfigureRequest]:
+            self.stacks[self.focused_stack_num].handle_event(event)

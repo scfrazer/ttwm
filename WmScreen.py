@@ -4,6 +4,7 @@ import sys
 import logging
 import Xlib.X as X
 import Xlib.error as Xerror
+import Xlib.Xutil as Xutil
 from WmData import WmData
 from WmGroup import WmGroup
 
@@ -51,11 +52,22 @@ class WmScreen(object):
         self.windows = []
         windows = self.wm_data.root.query_tree().children
         for window in windows:
+
             if not window.get_wm_name():
                 continue
+
+            wm_state = window.get_wm_state()
+            if wm_state == Xutil.WithdrawnState:
+                continue
+
+            wm_hints = window.get_wm_hints()
+            if wm_hints and wm_hints.flags & Xutil.IconWindowHint:
+                continue
+
             attrs = window.get_attributes()
             if attrs.override_redirect or attrs.map_state == X.IsUnmapped:
                 continue
+
             self.windows.append(window)
             window.change_save_set(X.SetModeInsert)
 
@@ -71,6 +83,24 @@ class WmScreen(object):
     def add_windows(self, windows):
 
         self.groups[self.active_group].add_windows(self.windows)
+
+    ############################################################################
+
+    def handle_event(self, event):
+
+        if event.type == X.KeyPress:
+            self.handle_key_press(event)
+
+        elif event.type == X.MapRequest:
+
+            event.window.map()
+            if event.window not in self.windows:
+                self.windows.append(event.window)
+                event.window.change_save_set(X.SetModeInsert)
+                self.groups[self.active_group].handle_event(event)
+
+        else:
+            self.groups[self.active_group].handle_event(event)
 
     ############################################################################
 

@@ -14,6 +14,7 @@ class WmStack(object):
         self.left = left
         self.width = width - 2 * border_width
         self.height = height - 2 * border_width
+        self.y_offset = self.wm_data.config.display['tab_height'] - 1  # -1 to match tabs
 
         self.left_windows = []
         self.tab_windows = []
@@ -105,13 +106,34 @@ class WmStack(object):
         # TODO Limit number of tabs
 
         for window in windows:
+
             logging.debug("Adding window '%s'", window.get_wm_name())
-            y_offset = self.wm_data.config.display['tab_height'] - 1  # -1 to match tabs
-            window.reparent(self.parent_window, 0, y_offset)
-            window.configure(width=self.width, height=self.height - y_offset)
-            self.tab_windows.insert(0, window)
+            window.reparent(self.parent_window, 0, self.y_offset)
+            self.resize_window(window)
+
+            if len(self.tab_windows) == 0:
+                self.top_tab_num = 0
+                self.tab_windows.append(window)
+            else:
+                self.top_tab_num += 1
+                self.tab_windows.insert(self.top_tab_num, window)
 
         self.draw_tabs()
+
+    ############################################################################
+
+    def resize_window(self, window):
+        window.configure(width=self.width, height=self.height - self.y_offset)
+
+    ############################################################################
+
+    def handle_event(self, event):
+
+        if event.type == X.MapRequest:
+            self.add_windows([event.window])
+
+        elif event.type == X.ConfigureRequest:
+            self.resize_window(event.window)
 
     ############################################################################
 
