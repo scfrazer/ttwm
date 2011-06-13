@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from optparse import OptionParser
+import logging
 from WmDisplay import WmDisplay
 
 def main():
@@ -16,6 +17,12 @@ def main():
                           help="Print debug output")
 
     (options, dummy) = opt_parser.parse_args()
+
+    if options.debug:
+        log_level = logging.DEBUG
+    else:
+        log_level = logging.INFO
+    logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=log_level)
 
     display = WmDisplay(options.display)
     display.run_event_loop()

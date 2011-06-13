@@ -1,5 +1,6 @@
 # WmGroup.py
 
+import logging
 from WmStack import WmStack
 
 class WmGroup(object):
@@ -15,7 +16,8 @@ class WmGroup(object):
     ############################################################################
 
     def add_windows(self, windows):
-        self.stacks[0].add_windows(windows)
+        logging.debug("Stack %d adding %d windows", self.focused_stack_num, len(windows))
+        self.stacks[self.focused_stack_num].add_windows(windows)
 
     ############################################################################
 

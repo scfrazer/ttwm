@@ -1,9 +1,10 @@
 # WmDisplay.py
 
+import sys
+import logging
 import Xlib.display as Xdisplay
 import Xlib.error as Xerror
 import Xlib.X as X
-import sys
 from WmConfig import WmConfig
 from WmScreen import WmScreen
 
@@ -13,6 +14,7 @@ class WmDisplay(object):
 
         self.setup_display(display_name)
         self.config = WmConfig(self.display)
+        self.set_active_screen(0)
         self.setup_screens()
 
     ############################################################################
@@ -22,10 +24,10 @@ class WmDisplay(object):
         try:
             self.display = Xdisplay.Display(display_name)
         except Xerror.DisplayNameError:
-            print "Display name '%s' is malformed" % (display_name)
+            logging.critical("Display name '%s' is malformed", display_name)
             sys.exit(1)
         except Xerror.DisplayConnectionError:
-            print "Connection to X server on display '%s' failed" % (display_name)
+            logging.critical("Connection to X server on display '%s' failed", display_name)
             sys.exit(1)
 
     ############################################################################
@@ -41,11 +43,29 @@ class WmDisplay(object):
 
     ############################################################################
 
+    def set_active_screen(self, screen_num):
+
+        logging.debug("Setting screen %d active", screen_num)
+        self.active_screen = 0
+
+    ############################################################################
+
     def run_event_loop(self):
         while 1:
             event = self.display.next_event()
-            # TODO
+
+            if event.type == X.ConfigureRequest:
+                logging.debug("ConfigureRequest: %s", event.window.get_wm_name())
+            if event.type == X.MapRequest:
+                logging.debug("MapRequest: %s", event.window.get_wm_name())
+            if event.type == X.CirculateRequest:
+                logging.debug("CirculateRequest: %s", event.window.get_wm_name())
+            if event.type == X.ClientMessage:
+                logging.debug("ClientMessage: %s", event.window.get_wm_name())
+
+            # TODO This is a screen thing (I think)
+            if event.type == X.EnterNotify:
+                logging.debug("EnterNotify")
+
             if event.type == X.KeyPress:
-                for screen in self.screens:
-                    if screen.handle_key_press(event):
-                        break
+                self.screens[self.active_screen].handle_key_press(event)

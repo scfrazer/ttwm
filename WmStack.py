@@ -1,5 +1,6 @@
 # WmStack.py
 
+import logging
 import Xlib.X as X
 
 class WmStack(object):
@@ -104,6 +105,7 @@ class WmStack(object):
         # TODO Limit number of tabs
 
         for window in windows:
+            logging.debug("Adding window '%s'", window.get_wm_name())
             y_offset = self.wm_data.config.display['tab_height'] - 1  # -1 to match tabs
             window.reparent(self.parent_window, 0, y_offset)
             window.configure(width=self.width, height=self.height - y_offset)

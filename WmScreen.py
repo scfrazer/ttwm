@@ -1,8 +1,9 @@
 # WmScreen.py
 
+import sys
+import logging
 import Xlib.X as X
 import Xlib.error as Xerror
-import sys
 from WmData import WmData
 from WmGroup import WmGroup
 
@@ -17,23 +18,20 @@ class WmScreen(object):
 
         self.claim_all_windows()
 
-        self.groups = {'Default': WmGroup(self.wm_data)}
-        self.groups['Default'].add_windows(self.windows)
-        self.active_group = 'Default'
+        group_name = 'Default'
+        self.groups = {group_name: WmGroup(self.wm_data)}
+        self.set_active_group(group_name)
+        self.add_windows(self.windows)
 
     ############################################################################
 
     def become_wm(self, display, root):
 
         catch = Xerror.CatchError(Xerror.BadAccess)
-        root.change_attributes(event_mask=(X.PropertyChangeMask
-                                           | X.FocusChangeMask
-                                           | X.SubstructureRedirectMask
-                                           | X.SubstructureNotifyMask),
-                               onerror=catch)
+        root.change_attributes(event_mask=X.SubstructureRedirectMask, onerror=catch)
         display.sync()
         if catch.get_error():
-            print "Another window manager is already runing"
+            logging.critical("Another window manager is already runing")
             sys.exit(1)
 
     ############################################################################
@@ -60,6 +58,19 @@ class WmScreen(object):
                 continue
             self.windows.append(window)
             window.change_save_set(X.SetModeInsert)
+
+    ############################################################################
+
+    def set_active_group(self, name):
+
+        logging.debug("Setting group '%s' active", name)
+        self.active_group = name
+
+    ############################################################################
+
+    def add_windows(self, windows):
+
+        self.groups[self.active_group].add_windows(self.windows)
 
     ############################################################################
 

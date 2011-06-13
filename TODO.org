@@ -1,12 +1,16 @@
 #+title: TODO
 
+* TODO Send VisibilityNotify to set VisibilityFullyObscured/VisibilityUnobscured
+
+* TODO Handle new windows -- MapRequest
+
+* TODO Handle destroyed windows [0/2]
+  - [ ] UnmapNotify/DestroyNotify
+  - [ ] Remove from the save set
+
+* TODO Handle iconified windows -- ClientMessage -> reject and send MapNotify to window
+
 * TODO Switch windows using tabs
-
-* TODO Handle new windows
-
-* TODO Handle destoryed windows
-
-* TODO When a window is destroyed, remove it from the save set
 
 * TODO Catch exceptions and keyboard interrupts and exit gracefully [0/1]
   - [ ] Unmap and destroy windows/contexts/etc

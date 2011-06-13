@@ -1,6 +1,7 @@
 # WmConfig.py
 
 import sys
+import logging
 import ConfigParser
 import Xlib.X as X
 import Xlib.XK as XK
@@ -69,6 +70,7 @@ class WmConfig(object):
             print "\nError: Couldn't read '%s'\n" % (filename)
             return
 
+        logging.debug("Reading config file '%s'", config_file.name)
         config = ConfigParser.RawConfigParser()
         config.readfp(config_file)
         config_file.close()
