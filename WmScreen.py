@@ -29,7 +29,9 @@ class WmScreen(object):
     def become_wm(self, display, root):
 
         catch = Xerror.CatchError(Xerror.BadAccess)
-        root.change_attributes(event_mask=X.SubstructureRedirectMask, onerror=catch)
+        root.change_attributes(event_mask=(X.SubstructureRedirectMask
+                                           | X.SubstructureNotifyMask),
+                               onerror=catch)
         display.sync()
         if catch.get_error():
             logging.critical("Another window manager is already runing")
@@ -98,6 +100,20 @@ class WmScreen(object):
                 self.windows.append(event.window)
                 event.window.change_save_set(X.SetModeInsert)
                 self.groups[self.active_group].handle_event(event)
+
+        elif event.type == X.UnmapNotify:
+
+            # TODO
+
+            if event.window in self.windows:
+                logging.debug("UnmapNotify for window '%s'", event.window)
+
+        elif event.type == X.DestroyNotify:
+
+            # TODO
+
+            if event.window in self.windows:
+                logging.debug("DestroyNotify for window '%s'", event.window)
 
         else:
             self.groups[self.active_group].handle_event(event)

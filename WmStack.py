@@ -37,6 +37,8 @@ class WmStack(object):
             X.CopyFromParent, X.InputOutput, X.CopyFromParent,
             border_pixel=self.wm_data.pixel_colors['focus_top_bg'])
 
+        self.parent_window.change_attributes(event_mask=X.SubstructureNotifyMask)
+
     ############################################################################
 
     def draw_tabs(self):
@@ -107,8 +109,11 @@ class WmStack(object):
 
         for window in windows:
 
-            logging.debug("Adding window '%s'", window.get_wm_name())
+            logging.debug("Adding window '%s' %s", window.get_wm_name(), window)
+            self.wm_data.root.change_attributes(event_mask=X.SubstructureRedirectMask)
             window.reparent(self.parent_window, 0, self.y_offset)
+            self.wm_data.root.change_attributes(event_mask=(X.SubstructureRedirectMask
+                                                            | X.SubstructureNotifyMask))
             self.resize_window(window)
 
             if len(self.tab_windows) == 0:

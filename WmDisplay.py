@@ -54,16 +54,26 @@ class WmDisplay(object):
         while 1:
             event = self.display.next_event()
 
-            if event.type in [X.KeyPress, X.MapRequest, X.ConfigureRequest]:
+            if event.type in [X.KeyPress,
+                              X.MapRequest,
+                              X.ConfigureRequest,
+                              X.UnmapNotify,
+                              X.DestroyNotify]:
                 self.screens[self.active_screen].handle_event(event)
+                continue
 
             # TODO Do anything with these?
 
             if event.type == X.CirculateRequest:
                 logging.debug("CirculateRequest: %s", event.window.get_wm_name())
+                continue
+
             if event.type == X.ClientMessage:
                 logging.debug("ClientMessage: %s", event.window.get_wm_name())
+                continue
 
             # TODO This is a screen thing (I think)
+
             if event.type == X.EnterNotify:
                 logging.debug("EnterNotify")
+                continue
