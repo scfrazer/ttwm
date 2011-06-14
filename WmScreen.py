@@ -22,7 +22,8 @@ class WmScreen(object):
         group_name = 'Default'
         self.groups = {group_name: WmGroup(self.wm_data)}
         self.set_active_group(group_name)
-        self.add_windows(self.windows)
+        for window in self.windows:
+            self.groups[group_name].add_window(window)
 
     ############################################################################
 
@@ -82,12 +83,6 @@ class WmScreen(object):
 
     ############################################################################
 
-    def add_windows(self, windows):
-
-        self.groups[self.active_group].add_windows(self.windows)
-
-    ############################################################################
-
     def handle_event(self, event):
 
         if event.type == X.KeyPress:
@@ -96,6 +91,7 @@ class WmScreen(object):
         elif event.type == X.MapRequest:
 
             event.window.map()
+
             if event.window not in self.windows:
                 self.windows.append(event.window)
                 event.window.change_save_set(X.SetModeInsert)
@@ -103,17 +99,17 @@ class WmScreen(object):
 
         elif event.type == X.UnmapNotify:
 
-            # TODO
-
             if event.window in self.windows:
-                logging.debug("UnmapNotify for window '%s'", event.window)
+                logging.debug("UnmapNotify for window %s", event.window)
+                event.window.change_save_set(X.SetModeDelete)
+                for group_name in self.groups:
+                    self.groups[group_name].remove_window(event.window)
 
         elif event.type == X.DestroyNotify:
 
-            # TODO
-
             if event.window in self.windows:
-                logging.debug("DestroyNotify for window '%s'", event.window)
+                logging.debug("DestroyNotify for window %s", event.window)
+                self.windows.remove(event.window)
 
         else:
             self.groups[self.active_group].handle_event(event)

@@ -103,27 +103,48 @@ class WmStack(object):
 
     ############################################################################
 
-    def add_windows(self, windows):
+    def add_window(self, window):
 
         # TODO Limit number of tabs
 
-        for window in windows:
+        logging.debug("Adding window '%s' %s", window.get_wm_name(), window)
 
-            logging.debug("Adding window '%s' %s", window.get_wm_name(), window)
-            self.wm_data.root.change_attributes(event_mask=X.SubstructureRedirectMask)
-            window.reparent(self.parent_window, 0, self.y_offset)
-            self.wm_data.root.change_attributes(event_mask=(X.SubstructureRedirectMask
-                                                            | X.SubstructureNotifyMask))
-            self.resize_window(window)
+        # Turn off SubstructureNotifyMask during reparent to avoid spurious
+        # UnmapNotify
 
-            if len(self.tab_windows) == 0:
-                self.top_tab_num = 0
-                self.tab_windows.append(window)
-            else:
-                self.top_tab_num += 1
-                self.tab_windows.insert(self.top_tab_num, window)
+        self.wm_data.root.change_attributes(event_mask=X.SubstructureRedirectMask)
+        window.reparent(self.parent_window, 0, self.y_offset)
+        self.wm_data.root.change_attributes(event_mask=(X.SubstructureRedirectMask
+                                                        | X.SubstructureNotifyMask))
+        self.resize_window(window)
+
+        if len(self.tab_windows) == 0:
+            self.top_tab_num = 0
+            self.tab_windows.append(window)
+        else:
+            self.top_tab_num += 1
+            self.tab_windows.insert(self.top_tab_num, window)
 
         self.draw_tabs()
+
+    ############################################################################
+
+    def remove_window(self, window):
+
+        # TODO Look in left/right windows too
+
+        window_idx = self.tab_windows.index(window)
+        if window_idx:
+
+            logging.debug("Removing window %s", window)
+
+            if self.top_tab_num == window_idx:
+                self.top_tab_num -= 1
+                if self.top_tab_num < 0:
+                    self.top_tab_num = 0
+
+            del self.tab_windows[window_idx]
+            self.draw_tabs()
 
     ############################################################################
 
@@ -135,7 +156,7 @@ class WmStack(object):
     def handle_event(self, event):
 
         if event.type == X.MapRequest:
-            self.add_windows([event.window])
+            self.add_window(event.window)
 
         elif event.type == X.ConfigureRequest:
             self.resize_window(event.window)

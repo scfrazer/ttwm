@@ -16,9 +16,17 @@ class WmGroup(object):
 
     ############################################################################
 
-    def add_windows(self, windows):
-        logging.debug("Stack %d adding %d windows", self.focused_stack_num, len(windows))
-        self.stacks[self.focused_stack_num].add_windows(windows)
+    def add_window(self, window):
+
+        logging.debug("Stack %d adding window %s", self.focused_stack_num, window)
+        self.stacks[self.focused_stack_num].add_window(window)
+
+    ############################################################################
+
+    def remove_window(self, window):
+
+        for stack in self.stacks:
+            stack.remove_window(window)
 
     ############################################################################
 
