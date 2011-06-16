@@ -134,7 +134,7 @@ class WmStack(object):
         # TODO Look in left/right windows too
 
         window_idx = self.tab_windows.index(window)
-        if window_idx:
+        if window_idx is not None:
 
             logging.debug("Removing window %s", window)
 
