@@ -54,7 +54,8 @@ class WmConfig(object):
 
         self.keys = {}
         self.commands = ['next_window',
-                         'prev_window']
+                         'prev_window',
+                         'kill_window']
 
         self.parse_keys(display, config)
 

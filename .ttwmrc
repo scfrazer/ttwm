@@ -28,3 +28,4 @@ title: -*-helvetica-medium-r-*-*-12-*
 
 Mod4+n: next_window
 Mod4+p: prev_window
+Mod4+q: kill-window

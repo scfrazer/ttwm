@@ -123,7 +123,7 @@ class WmScreen(object):
 
             cmd = self.wm_data.config.keys[lookup]
 
-            if cmd in ['next_window', 'prev_window']:
+            if cmd in ['next_window', 'prev_window', 'kill_window']:
                 self.groups[self.active_group].do_cmd(cmd)
                 return True
 

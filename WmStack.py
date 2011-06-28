@@ -185,3 +185,6 @@ class WmStack(object):
             self.update_tab(old_top_tab_num)
             self.update_tab(self.top_tab_num)
             self.tab_windows[self.top_tab_num].configure(stack_mode=X.Above)
+
+        elif cmd == 'kill_window':
+            pass

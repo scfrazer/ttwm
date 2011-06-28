@@ -1,5 +1,7 @@
 #+title: TODO
 
+* TODO Quit window
+
 * TODO Send VisibilityNotify to set VisibilityFullyObscured/VisibilityUnobscured
 
 * TODO Set focus to newly created windows, and move focus when a window unmaps
