@@ -9,12 +9,23 @@ class WmStack(object):
 
         self.wm_data = wm_data
 
-        border_width = self.wm_data.config.display['border_width']
+        self.event_dispatch = {
+            X.MapRequest: self.event_map_request,
+            X.ConfigureRequest: self.event_configure_request
+            }
+
+        self.cmd_dispatch = {
+            'next_window': self.cmd_next_window,
+            'prev_window': self.cmd_prev_window,
+            'kill_window': self.cmd_kill_window
+            }
+
+        border_width = self.wm_data.config.display.border_width
         self.top = top
         self.left = left
         self.width = width - 2 * border_width
         self.height = height - 2 * border_width
-        self.y_offset = self.wm_data.config.display['tab_height'] - 1  # -1 to match tabs
+        self.y_offset = self.wm_data.config.display.tab_height - 1  # -1 to match tabs
 
         self.left_windows = []
         self.tab_windows = []
@@ -33,9 +44,9 @@ class WmStack(object):
 
         self.parent_window = self.wm_data.root.create_window(
             self.top, self.left, self.width, self.height,
-            self.wm_data.config.display['border_width'],
+            self.wm_data.config.display.border_width,
             X.CopyFromParent, X.InputOutput, X.CopyFromParent,
-            border_pixel=self.wm_data.pixel_colors['focus_top_bg'])
+            border_pixel=self.wm_data.config.colors.tab_ff_bg)
 
         self.parent_window.change_attributes(event_mask=X.SubstructureNotifyMask)
 
@@ -65,7 +76,7 @@ class WmStack(object):
 
             tab = self.parent_window.create_window(
                 left_edge, -1,  # -1 so it's flush with the parent border
-                width - 2, self.wm_data.config.display['tab_height'] - 2,  # -2 for border
+                width - 2, self.wm_data.config.display.tab_height - 2,  # -2 for border
                 1, X.CopyFromParent, X.InputOutput, X.CopyFromParent)
 
             left_edge += width
@@ -81,13 +92,13 @@ class WmStack(object):
         # TODO Unfocused tabs
 
         if tab_num == self.top_tab_num:
-            gc = self.wm_data.gcs['focus_top']
-            background_pixel = self.wm_data.pixel_colors['focus_top_bg']
-            border_pixel = self.wm_data.pixel_colors['focus_top_bo']
+            gc = self.wm_data.gcs.tab_ff
+            background_pixel = self.wm_data.config.colors.tab_ff_bg
+            border_pixel = self.wm_data.config.colors.tab_ff_bo
         else:
-            gc = self.wm_data.gcs['focus_und']
-            background_pixel = self.wm_data.pixel_colors['focus_und_bg']
-            border_pixel = self.wm_data.pixel_colors['focus_und_bo']
+            gc = self.wm_data.gcs.tab_fu
+            background_pixel = self.wm_data.config.colors.tab_fu_bg
+            border_pixel = self.wm_data.config.colors.tab_fu_bo
 
         tab = self.tabs[tab_num]
         tab.change_attributes(border_pixel=border_pixel,
@@ -98,7 +109,7 @@ class WmStack(object):
         title_text_extents = gc.query_text_extents(title_text)
         tab.clear_area(width=geom.width, height=geom.height)
         tab.draw_text(gc, (geom.width - title_text_extents.overall_width) / 2,
-                      self.wm_data.config.fonts['title_height'] - 2,  # -2 for border
+                      self.wm_data.config.fonts.title_height - 2,  # -2 for border
                       title_text)
 
     ############################################################################
@@ -155,36 +166,63 @@ class WmStack(object):
 
     def handle_event(self, event):
 
-        if event.type == X.MapRequest:
-            self.add_window(event.window)
+        if event.type in self.event_dispatch:
+            self.event_dispatch[event.type](event)
 
-        elif event.type == X.ConfigureRequest:
-            self.resize_window(event.window)
+    ############################################################################
+
+    def event_map_request(self, event):
+        self.add_window(event.window)
+
+    ############################################################################
+
+    def event_configure_request(self, event):
+        self.resize_window(event.window)
 
     ############################################################################
 
     def do_cmd(self, cmd):
 
-        if cmd in ['next_window', 'prev_window']:
+        if cmd in self.cmd_dispatch:
+            self.cmd_dispatch[cmd]()
 
-            if len(self.tab_windows) < 2:
-                return
+    ############################################################################
 
-            # TODO Handle extra left/right tabs
+    def cmd_next_window(self):
 
-            old_top_tab_num = self.top_tab_num
-            if cmd == 'next_window':
-                self.top_tab_num += 1
-                if self.top_tab_num >= len(self.tab_windows):
-                    self.top_tab_num = 0
-            else:
-                self.top_tab_num -= 1
-                if self.top_tab_num < 0:
-                    self.top_tab_num = len(self.tab_windows) - 1
+        if len(self.tab_windows) < 2:
+            return
 
-            self.update_tab(old_top_tab_num)
-            self.update_tab(self.top_tab_num)
-            self.tab_windows[self.top_tab_num].configure(stack_mode=X.Above)
+        # TODO Handle extra left/right tabs
 
-        elif cmd == 'kill_window':
-            pass
+        old_top_tab_num = self.top_tab_num
+        self.top_tab_num += 1
+        if self.top_tab_num >= len(self.tab_windows):
+            self.top_tab_num = 0
+
+        self.update_tab(old_top_tab_num)
+        self.update_tab(self.top_tab_num)
+        self.tab_windows[self.top_tab_num].configure(stack_mode=X.Above)
+
+    ############################################################################
+
+    def cmd_prev_window(self):
+
+        if len(self.tab_windows) < 2:
+            return
+
+        # TODO Handle extra left/right tabs
+
+        old_top_tab_num = self.top_tab_num
+        self.top_tab_num -= 1
+        if self.top_tab_num < 0:
+            self.top_tab_num = len(self.tab_windows) - 1
+
+        self.update_tab(old_top_tab_num)
+        self.update_tab(self.top_tab_num)
+        self.tab_windows[self.top_tab_num].configure(stack_mode=X.Above)
+
+    ############################################################################
+
+    def cmd_kill_window(self):
+        pass

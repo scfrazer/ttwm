@@ -1,5 +1,10 @@
 # WmData.py
 
+class WmDataGC(object):
+    pass
+
+################################################################################
+
 class WmData(object):
 
     def __init__(self, display, screen, config):
@@ -9,36 +14,33 @@ class WmData(object):
         self.root = screen.root
         self.config = config
 
-        self.setup_colors()
-        self.setup_gcs()
+        self.config.colors.pixelize_colors(screen)
+        self.setup_metrics_and_gcs()
 
     ############################################################################
 
-    def setup_colors(self):
+    def setup_metrics_and_gcs(self):
 
-        self.pixel_colors = {}
+        self.gcs = WmDataGC()
 
-        colormap = self.screen.default_colormap
-
-        for (color_name, color_value) in self.config.colors.iteritems():
-            color = colormap.alloc_named_color(color_value)
-            self.pixel_colors[color_name] = color.pixel
-
-    ############################################################################
-
-    def setup_gcs(self):
-
-        self.gcs = {}
-
-        font = self.display.open_font(self.config.fonts['title'])
-
-        query = font.query()
+        title_font = self.display.open_font(self.config.fonts.title)
+        query = title_font.query()
+        self.config.fonts.title_height = query.font_ascent + query.font_descent
         # TODO 4 = 1 pad + 1 border on top/bottom ... should be configurable
-        self.config.fonts['title_height'] = query.font_ascent + query.font_descent
-        self.config.display['tab_height'] = self.config.fonts['title_height'] + 4
+        self.config.display.tab_height = self.config.fonts.title_height + 4
 
-        for name in ['focus_top', 'focus_und', 'unfocus_top', 'unfocus_und']:
+        self.gcs.tab_ff = self.root.create_gc(font=title_font,
+                                              foreground=self.config.colors.tab_ff_fg,
+                                              background=self.config.colors.tab_ff_bg)
 
-            self.gcs[name] = self.root.create_gc(font=font,
-                                                 foreground=self.pixel_colors[name + '_fg'],
-                                                 background=self.pixel_colors[name + '_bg'])
+        self.gcs.tab_fu = self.root.create_gc(font=title_font,
+                                              foreground=self.config.colors.tab_fu_fg,
+                                              background=self.config.colors.tab_fu_bg)
+
+        self.gcs.tab_uf = self.root.create_gc(font=title_font,
+                                              foreground=self.config.colors.tab_uf_fg,
+                                              background=self.config.colors.tab_uf_bg)
+
+        self.gcs.tab_uu = self.root.create_gc(font=title_font,
+                                              foreground=self.config.colors.tab_uu_fg,
+                                              background=self.config.colors.tab_uu_bg)

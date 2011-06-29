@@ -1,7 +1,6 @@
 # WmGroup.py
 
 import logging
-import Xlib.X as X
 from WmStack import WmStack
 
 class WmGroup(object):
@@ -9,6 +8,9 @@ class WmGroup(object):
     def __init__(self, wm_data):
 
         self.wm_data = wm_data
+
+        self.event_dispatch = {}
+        self.cmd_dispatch = {}
 
         geom = wm_data.root.get_geometry()
         self.stacks = [WmStack(wm_data, top=0, left=0, width=geom.width, height=geom.height)]
@@ -32,12 +34,16 @@ class WmGroup(object):
 
     def do_cmd(self, cmd):
 
-        if cmd in ['next_window', 'prev_window']:
+        if cmd in self.cmd_dispatch:
+            self.cmd_dispatch[cmd]()
+        else:
             self.stacks[self.focused_stack_num].do_cmd(cmd)
 
     ############################################################################
 
     def handle_event(self, event):
 
-        if event.type in [X.MapRequest, X.ConfigureRequest]:
+        if event.type in self.event_dispatch:
+            self.event_dispatch[event.type](event)
+        else:
             self.stacks[self.focused_stack_num].handle_event(event)

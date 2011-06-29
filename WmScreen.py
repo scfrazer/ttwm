@@ -15,8 +15,16 @@ class WmScreen(object):
         self.become_wm(display, screen.root)
         self.wm_data = WmData(display, screen, config)
 
-        self.grab_keys()
+        self.event_dispatch = {
+            X.KeyPress: self.event_key_press,
+            X.MapRequest: self.event_map_request,
+            X.UnmapNotify: self.event_unmap_notify,
+            X.DestroyNotify: self.event_destroy_notify
+            }
 
+        self.cmd_dispatch = {}
+
+        self.grab_keys()
         self.claim_all_windows()
 
         group_name = 'Default'
@@ -85,46 +93,49 @@ class WmScreen(object):
 
     def handle_event(self, event):
 
-        if event.type == X.KeyPress:
-            self.handle_key_press(event)
-
-        elif event.type == X.MapRequest:
-
-            event.window.map()
-
-            if event.window not in self.windows:
-                self.windows.append(event.window)
-                event.window.change_save_set(X.SetModeInsert)
-                self.groups[self.active_group].handle_event(event)
-
-        elif event.type == X.UnmapNotify:
-
-            if event.window in self.windows:
-                logging.debug("UnmapNotify for window %s", event.window)
-                event.window.change_save_set(X.SetModeDelete)
-                for group_name in self.groups:
-                    self.groups[group_name].remove_window(event.window)
-
-        elif event.type == X.DestroyNotify:
-
-            if event.window in self.windows:
-                logging.debug("DestroyNotify for window %s", event.window)
-                self.windows.remove(event.window)
-
+        if event.type in self.event_dispatch:
+            self.event_dispatch[event.type](event)
         else:
             self.groups[self.active_group].handle_event(event)
 
     ############################################################################
 
-    def handle_key_press(self, event):
+    def event_key_press(self, event):
 
         lookup = (event.state, event.detail)
         if lookup in self.wm_data.config.keys:
 
             cmd = self.wm_data.config.keys[lookup]
-
-            if cmd in ['next_window', 'prev_window', 'kill_window']:
+            if cmd in self.cmd_dispatch:
+                self.cmd_dispatch[cmd]()
+            else:
                 self.groups[self.active_group].do_cmd(cmd)
-                return True
 
-        return False
+    ############################################################################
+
+    def event_map_request(self, event):
+
+        event.window.map()
+
+        if event.window not in self.windows:
+            self.windows.append(event.window)
+            event.window.change_save_set(X.SetModeInsert)
+            self.groups[self.active_group].handle_event(event)
+
+    ############################################################################
+
+    def event_unmap_notify(self, event):
+
+        if event.window in self.windows:
+            logging.debug("UnmapNotify for window %s", event.window)
+            event.window.change_save_set(X.SetModeDelete)
+            for group_name in self.groups:
+                self.groups[group_name].remove_window(event.window)
+
+    ############################################################################
+
+    def event_destroy_notify(self, event):
+
+        if event.window in self.windows:
+            logging.debug("DestroyNotify for window %s", event.window)
+            self.windows.remove(event.window)

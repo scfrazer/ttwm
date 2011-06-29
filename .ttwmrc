@@ -4,21 +4,21 @@ border_width: 1
 
 [Colors]
 
-focus_top_fg: #ffffff
-focus_top_bg: #607080
-focus_top_bo: #708090
+tab_ff_fg: #ffffff
+tab_ff_bg: #607080
+tab_ff_bo: #708090
 
-focus_und_fg: #a0a0a0
-focus_und_bg: #405060
-focus_und_bo: #607080
+tab_fu_fg: #a0a0a0
+tab_fu_bg: #405060
+tab_fu_bo: #607080
 
-unfocus_top_fg: #c0c0c0
-unfocus_top_bg: #405060
-unfocus_top_bo: #607080
+tab_uf_fg: #c0c0c0
+tab_uf_bg: #405060
+tab_uf_bo: #607080
 
-unfocus_und_fg: #a0a0a0
-unfocus_und_bg: #304050
-unfocus_und_bo: #506070
+tab_uu_fg: #a0a0a0
+tab_uu_bg: #304050
+tab_uu_bo: #506070
 
 [Fonts]
 
@@ -28,4 +28,4 @@ title: -*-helvetica-medium-r-*-*-12-*
 
 Mod4+n: next_window
 Mod4+p: prev_window
-Mod4+q: kill-window
+Mod4+q: kill_window
