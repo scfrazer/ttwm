@@ -5,6 +5,11 @@ class WmDataGC(object):
 
 ################################################################################
 
+class WmDataAtoms(object):
+    pass
+
+################################################################################
+
 class WmData(object):
 
     def __init__(self, display, screen, config):
@@ -16,6 +21,7 @@ class WmData(object):
 
         self.config.colors.pixelize_colors(screen)
         self.setup_metrics_and_gcs()
+        self.setup_atoms()
 
     ############################################################################
 
@@ -44,3 +50,11 @@ class WmData(object):
         self.gcs.tab_uu = self.root.create_gc(font=title_font,
                                               foreground=self.config.colors.tab_uu_fg,
                                               background=self.config.colors.tab_uu_bg)
+
+    ############################################################################
+
+    def setup_atoms(self):
+
+        self.atoms = WmDataAtoms()
+        self.atoms.WM_PROTOCOLS = self.display.intern_atom('WM_PROTOCOLS')
+        self.atoms.WM_DELETE_WINDOW = self.display.intern_atom('WM_DELETE_WINDOW')

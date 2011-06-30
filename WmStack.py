@@ -2,6 +2,7 @@
 
 import logging
 import Xlib.X as X
+import Xlib.protocol as Xprotocol
 
 class WmStack(object):
 
@@ -46,6 +47,7 @@ class WmStack(object):
             self.top, self.left, self.width, self.height,
             self.wm_data.config.display.border_width,
             X.CopyFromParent, X.InputOutput, X.CopyFromParent,
+            background_pixmap=X.ParentRelative,
             border_pixel=self.wm_data.config.colors.tab_ff_bg)
 
         self.parent_window.change_attributes(event_mask=X.SubstructureNotifyMask)
@@ -59,6 +61,7 @@ class WmStack(object):
             tab.destroy()
 
         if len(self.tab_windows) == 0:
+            self.parent_window.clear_area(0, 0, self.width, self.height)
             return
 
         tab_width = self.width / len(self.tab_windows)
@@ -144,10 +147,10 @@ class WmStack(object):
 
         # TODO Look in left/right windows too
 
-        window_idx = self.tab_windows.index(window)
-        if window_idx is not None:
+        if window in self.tab_windows:
 
             logging.debug("Removing window %s", window)
+            window_idx = self.tab_windows.index(window)
 
             if self.top_tab_num == window_idx:
                 self.top_tab_num -= 1
@@ -225,4 +228,13 @@ class WmStack(object):
     ############################################################################
 
     def cmd_kill_window(self):
-        pass
+
+        window = self.tab_windows[self.top_tab_num]
+        if self.wm_data.atoms.WM_DELETE_WINDOW in window.get_wm_protocols():
+            delete_event = Xprotocol.event.ClientMessage(
+                window=window,
+                client_type=self.wm_data.atoms.WM_PROTOCOLS,
+                data=(32, [self.wm_data.atoms.WM_DELETE_WINDOW, X.CurrentTime, 0, 0, 0]))
+            window.send_event(delete_event)
+        else:
+            window.destroy()
