@@ -1,14 +1,12 @@
 #+title: TODO
 
-* TODO Set focus to newly created windows, and move focus when a window unmaps
-
 * TODO Iconify/uniconify as windows are moved to top of stack
-
-* TODO Send VisibilityNotify to set VisibilityFullyObscured/VisibilityUnobscured
-
-* MAYBE Handle iconified windows -- ClientMessage -> reject and send MapNotify to window
 
 * TODO Switch windows using tabs
 
 * TODO Catch exceptions and keyboard interrupts and exit gracefully [0/1]
   - [ ] Unmap and destroy windows/contexts/etc
+
+* MAYBE Send VisibilityNotify to set VisibilityFullyObscured/VisibilityUnobscured
+
+* MAYBE Handle iconified windows -- ClientMessage -> reject and send MapNotify to window

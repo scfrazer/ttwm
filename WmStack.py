@@ -28,15 +28,13 @@ class WmStack(object):
         self.height = height - 2 * border_width
         self.y_offset = self.wm_data.config.display.tab_height - 1  # -1 to match tabs
 
-        self.left_windows = []
-        self.tab_windows = []
-        self.right_windows = []
+        self.windows = []
+        self.focused_window_num = 0
 
         self.create_parent_window()
         self.parent_window.map()
 
         self.tabs = []
-        self.top_tab_num = 0  # This is an index into self.tabbed_windows
         self.draw_tabs()
 
     ############################################################################
@@ -60,18 +58,17 @@ class WmStack(object):
             tab.unmap()
             tab.destroy()
 
-        if len(self.tab_windows) == 0:
+        if len(self.windows) == 0:
             self.parent_window.clear_area(0, 0, self.width, self.height)
+            self.focused_window_num = 0
             return
 
-        tab_width = self.width / len(self.tab_windows)
-        tab_width_leftover = self.width % len(self.tab_windows)
-
-        # TODO Limit number of tabs
+        tab_width = self.width / len(self.windows)
+        tab_width_leftover = self.width % len(self.windows)
 
         self.tabs = []
         left_edge = 0
-        for (tab_num, window) in enumerate(self.tab_windows):
+        for (tab_num, window) in enumerate(self.windows):
 
             width = tab_width
             if tab_num < tab_width_leftover:
@@ -92,9 +89,9 @@ class WmStack(object):
 
     def update_tab(self, tab_num):
 
-        # TODO Unfocused tabs
+        # TODO Unfocused stacks
 
-        if tab_num == self.top_tab_num:
+        if tab_num == self.focused_window_num:
             gc = self.wm_data.gcs.tab_ff
             background_pixel = self.wm_data.config.colors.tab_ff_bg
             border_pixel = self.wm_data.config.colors.tab_ff_bo
@@ -108,7 +105,7 @@ class WmStack(object):
                               background_pixel=background_pixel)
 
         geom = tab.get_geometry()
-        title_text = self.tab_windows[tab_num].get_wm_name()
+        title_text = self.windows[tab_num].get_wm_name()
         title_text_extents = gc.query_text_extents(title_text)
         tab.clear_area(width=geom.width, height=geom.height)
         tab.draw_text(gc, (geom.width - title_text_extents.overall_width) / 2,
@@ -118,8 +115,6 @@ class WmStack(object):
     ############################################################################
 
     def add_window(self, window):
-
-        # TODO Limit number of tabs
 
         logging.debug("Adding window '%s' %s", window.get_wm_name(), window)
 
@@ -132,33 +127,46 @@ class WmStack(object):
                                                         | X.SubstructureNotifyMask))
         self.resize_window(window)
 
-        if len(self.tab_windows) == 0:
-            self.top_tab_num = 0
-            self.tab_windows.append(window)
-        else:
-            self.top_tab_num += 1
-            self.tab_windows.insert(self.top_tab_num, window)
+        if self.windows:
+            self.focused_window_num += 1
+        self.windows.insert(self.focused_window_num, window)
 
         self.draw_tabs()
+        self.focus_window_num(self.focused_window_num)
+
+    ############################################################################
+
+    def focus_window_num(self, window_num):
+
+        if window_num >= len(self.windows):
+            return
+
+        window = self.windows[window_num]
+        window.configure(stack_mode=X.Above)
+        window.set_input_focus(X.RevertToPointerRoot, X.CurrentTime)
+
+        if window_num != self.focused_window_num:
+            old_focused_window_num = self.focused_window_num
+            self.focused_window_num = window_num
+            self.update_tab(old_focused_window_num)
+            self.update_tab(self.focused_window_num)
 
     ############################################################################
 
     def remove_window(self, window):
 
-        # TODO Look in left/right windows too
-
-        if window in self.tab_windows:
+        if window in self.windows:
 
             logging.debug("Removing window %s", window)
-            window_idx = self.tab_windows.index(window)
+            window_idx = self.windows.index(window)
 
-            if self.top_tab_num == window_idx:
-                self.top_tab_num -= 1
-                if self.top_tab_num < 0:
-                    self.top_tab_num = 0
+            if self.focused_window_num == window_idx:
+                if self.focused_window_num > 0:
+                    self.focused_window_num -= 1
 
-            del self.tab_windows[window_idx]
+            del self.windows[window_idx]
             self.draw_tabs()
+            self.focus_window_num(self.focused_window_num)
 
     ############################################################################
 
@@ -193,43 +201,33 @@ class WmStack(object):
 
     def cmd_next_window(self):
 
-        if len(self.tab_windows) < 2:
+        if len(self.windows) < 2:
             return
 
-        # TODO Handle extra left/right tabs
+        next_win_num = self.focused_window_num + 1
+        if next_win_num >= len(self.windows):
+            next_win_num = 0
 
-        old_top_tab_num = self.top_tab_num
-        self.top_tab_num += 1
-        if self.top_tab_num >= len(self.tab_windows):
-            self.top_tab_num = 0
-
-        self.update_tab(old_top_tab_num)
-        self.update_tab(self.top_tab_num)
-        self.tab_windows[self.top_tab_num].configure(stack_mode=X.Above)
+        self.focus_window_num(next_win_num)
 
     ############################################################################
 
     def cmd_prev_window(self):
 
-        if len(self.tab_windows) < 2:
+        if len(self.windows) < 2:
             return
 
-        # TODO Handle extra left/right tabs
+        prev_win_num = self.focused_window_num - 1
+        if prev_win_num < 0:
+            prev_win_num = len(self.windows) - 1
 
-        old_top_tab_num = self.top_tab_num
-        self.top_tab_num -= 1
-        if self.top_tab_num < 0:
-            self.top_tab_num = len(self.tab_windows) - 1
-
-        self.update_tab(old_top_tab_num)
-        self.update_tab(self.top_tab_num)
-        self.tab_windows[self.top_tab_num].configure(stack_mode=X.Above)
+        self.focus_window_num(prev_win_num)
 
     ############################################################################
 
     def cmd_kill_window(self):
 
-        window = self.tab_windows[self.top_tab_num]
+        window = self.windows[self.focused_window_num]
         if self.wm_data.atoms.WM_DELETE_WINDOW in window.get_wm_protocols():
             delete_event = Xprotocol.event.ClientMessage(
                 window=window,
