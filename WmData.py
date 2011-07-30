@@ -51,6 +51,12 @@ class WmData(object):
                                               foreground=self.config.colors.tab_uu_fg,
                                               background=self.config.colors.tab_uu_bg)
 
+        group_font = self.display.open_font(self.config.fonts.group)
+        query = title_font.query()
+        self.config.fonts.group_height = query.font_ascent + query.font_descent
+        # TODO 4 = 1 pad + 1 border on top/bottom ... should be configurable
+        self.config.display.status_height = self.config.fonts.group_height + 4
+
     ############################################################################
 
     def setup_atoms(self):

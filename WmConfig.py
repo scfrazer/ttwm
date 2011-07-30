@@ -63,6 +63,7 @@ class WmConfigFonts(object):
     def __init__(self):
 
         self.title = '-*-helvetica-medium-r-*-*-12-*'
+        self.group = '-*-helvetica-medium-r-*-*-14-*'
 
 ################################################################################
 

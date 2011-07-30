@@ -27,11 +27,11 @@ class WmScreen(object):
         self.grab_keys()
         self.claim_all_windows()
 
-        group_name = 'Default'
-        self.groups = {group_name: WmGroup(self.wm_data)}
-        self.set_active_group(group_name)
+        self.groups = {}
+        self.active_group = None
+        self.add_group('Default')
         for window in self.windows:
-            self.groups[group_name].add_window(window)
+            self.groups[self.active_group].add_window(window)
 
     ############################################################################
 
@@ -84,6 +84,17 @@ class WmScreen(object):
 
     ############################################################################
 
+    def add_group(self, name):
+
+        logging.debug("Adding group '%s'", name)
+        if name in self.groups:
+            logging.error("Group '%s' already exists, ignoring command", name)
+            return
+        self.groups = {name: WmGroup(self.wm_data)}
+        self.set_active_group(name)
+
+    ############################################################################
+
     def set_active_group(self, name):
 
         logging.debug("Setting group '%s' active", name)
@@ -128,9 +139,6 @@ class WmScreen(object):
 
         if event.window in self.windows:
             logging.debug("UnmapNotify for window %s", event.window)
-            event.window.change_save_set(X.SetModeDelete)
-            for group_name in self.groups:
-                self.groups[group_name].remove_window(event.window)
 
     ############################################################################
 
@@ -138,4 +146,7 @@ class WmScreen(object):
 
         if event.window in self.windows:
             logging.debug("DestroyNotify for window %s", event.window)
+            event.window.change_save_set(X.SetModeDelete)
+            for group_name in self.groups:
+                self.groups[group_name].remove_window(event.window)
             self.windows.remove(event.window)
