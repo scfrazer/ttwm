@@ -57,6 +57,6 @@ bo: #607080
 
 [Keys]
 
-Mod4+n: next_window
-Mod4+p: prev_window
-Mod4+q: kill_window
+next_window: Mod4+n
+prev_window: Mod4+p
+kill_window: Mod4+q
