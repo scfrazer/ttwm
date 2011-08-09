@@ -14,6 +14,7 @@ class WmScreen(object):
 
         self.become_wm(display, screen.root)
         self.wm_data = WmData(display, screen, config)
+        self.grab_keys()
 
         self.event_dispatch = {
             X.KeyPress: self.event_key_press,
@@ -24,14 +25,11 @@ class WmScreen(object):
 
         self.cmd_dispatch = {}
 
-        self.grab_keys()
-        self.claim_all_windows()
-
         self.groups = {}
-        self.active_group = None
         self.add_group('Default')
-        for window in self.windows:
-            self.groups[self.active_group].add_window(window)
+
+        self.windows = []
+        self.claim_all_windows()
 
     ############################################################################
 
@@ -60,7 +58,6 @@ class WmScreen(object):
 
     def claim_all_windows(self):
 
-        self.windows = []
         windows = self.wm_data.root.query_tree().children
         for window in windows:
 
@@ -81,6 +78,8 @@ class WmScreen(object):
 
             self.windows.append(window)
             window.change_save_set(X.SetModeInsert)
+
+            self.groups[self.active_group].add_window(window)
 
     ############################################################################
 

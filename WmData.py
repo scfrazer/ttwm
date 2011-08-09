@@ -29,6 +29,8 @@ class WmData(object):
 
         self.gcs = WmDataGC()
 
+        # Tabs
+
         title_font = self.display.open_font(self.config.fonts.title)
         query = title_font.query()
         self.config.fonts.title_height = query.font_ascent + query.font_descent
@@ -51,11 +53,15 @@ class WmData(object):
                                               foreground=self.config.colors.tab_uu_fg,
                                               background=self.config.colors.tab_uu_bg)
 
+        # Status bar
+
         group_font = self.display.open_font(self.config.fonts.group)
         query = title_font.query()
         self.config.fonts.group_height = query.font_ascent + query.font_descent
         # TODO 4 = 1 pad + 1 border on top/bottom ... should be configurable
         self.config.display.status_height = self.config.fonts.group_height + 4
+
+        # TODO Change 'group' to 'status', add gcs for groups and status
 
     ############################################################################
 

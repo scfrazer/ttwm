@@ -14,8 +14,8 @@ class WmDisplay(object):
 
         self.setup_display(display_name)
         self.config = WmConfig(self.display)
-        self.set_active_screen(0)
         self.setup_screens()
+        self.set_active_screen(0)
 
     ############################################################################
 
@@ -32,13 +32,6 @@ class WmDisplay(object):
 
     ############################################################################
 
-    def set_active_screen(self, screen_num):
-
-        logging.debug("Setting screen %d active", screen_num)
-        self.active_screen = 0
-
-    ############################################################################
-
     def setup_screens(self):
 
         self.screens = []
@@ -47,6 +40,13 @@ class WmDisplay(object):
             self.screens.append(WmScreen(self.display,
                                          self.display.screen(screen_num),
                                          self.config))
+
+    ############################################################################
+
+    def set_active_screen(self, screen_num):
+
+        logging.debug("Setting screen %d active", screen_num)
+        self.active_screen = 0
 
     ############################################################################
 

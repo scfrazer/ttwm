@@ -1,29 +1,59 @@
-[Display]
+[Stack]
 
 border_width: 1
 
-[Colors]
+[Tab]
 
-tab_ff_fg: #ffffff
-tab_ff_bg: #607080
-tab_ff_bo: #708090
+font: -*-helvetica-medium-r-*-*-12-*
+border_width: 1
+padding: 1
 
-tab_fu_fg: #a0a0a0
-tab_fu_bg: #405060
-tab_fu_bo: #607080
+ff_fg: #ffffff
+ff_bg: #607080
+ff_bo: #708090
 
-tab_uf_fg: #c0c0c0
-tab_uf_bg: #405060
-tab_uf_bo: #607080
+fu_fg: #a0a0a0
+fu_bg: #405060
+fu_bo: #607080
 
-tab_uu_fg: #a0a0a0
-tab_uu_bg: #304050
-tab_uu_bo: #506070
+uf_fg: #c0c0c0
+uf_bg: #405060
+uf_bo: #607080
 
-[Fonts]
+uu_fg: #a0a0a0
+uu_bg: #304050
+uu_bo: #506070
 
-title: -*-helvetica-medium-r-*-*-12-*
-group: -*-helvetica-medium-r-*-*-14-*
+[StatusBar]
+
+border_width: 1
+
+bg: #607080
+bo: #607080
+
+[Group]
+
+font: -*-helvetica-medium-r-*-*-14-*
+border_width: 1
+padding: 1
+
+active_fg: #ffffff
+active_bg: #607080
+active_bo: #708090
+
+inactive_fg: #a0a0a0
+inactive_bg: #405060
+inactive_bo: #607080
+
+[Meter]
+
+font: -*-helvetica-medium-r-*-*-14-*
+border_width: 1
+padding: 1
+
+fg: #ffffff
+bg: #607080
+bo: #607080
 
 [Keys]
 
