@@ -13,7 +13,7 @@ class WmDisplay(object):
     def __init__(self, display_name):
 
         self.setup_display(display_name)
-        self.config = WmConfig(self.display)
+        self.config = WmConfig()
         self.setup_screens()
         self.set_active_screen(0)
 

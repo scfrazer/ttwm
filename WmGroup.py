@@ -13,6 +13,7 @@ class WmGroup(object):
         self.cmd_dispatch = {}
 
         geom = wm_data.root.get_geometry()
+        # TODO Leave room for status bar
         self.stacks = [WmStack(wm_data, top=0, left=0, width=geom.width, height=geom.height)]
         self.focused_stack_num = 0
 

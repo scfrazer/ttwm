@@ -108,7 +108,7 @@ class WmConfigMeter(WmConfigObject):
 
         self.fg = '#ffffff'
         self.bg = '#607080'
-        self.bo = '#708090'
+        self.bo = '#607080'
 
         self.parse(config_obj, section)
 

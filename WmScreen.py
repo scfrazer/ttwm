@@ -25,6 +25,8 @@ class WmScreen(object):
 
         self.cmd_dispatch = {}
 
+        self.create_status_bar()
+
         self.groups = {}
         self.add_group('Default')
 
@@ -41,7 +43,7 @@ class WmScreen(object):
                                onerror=catch)
         display.sync()
         if catch.get_error():
-            logging.critical("Another window manager is already runing")
+            logging.critical("Another window manager is already running")
             sys.exit(1)
 
     ############################################################################
@@ -49,10 +51,35 @@ class WmScreen(object):
     def grab_keys(self):
 
         release_mod = X.AnyModifier << 1
-        for item in self.wm_data.config.keys:
+        for item in self.wm_data.keymap:
             (mod_mask, keycode) = item
             self.wm_data.root.grab_key(keycode, mod_mask & ~release_mod,
                                        1, X.GrabModeAsync, X.GrabModeAsync)
+
+    ############################################################################
+
+    def create_status_bar(self):
+        # TODO
+        pass
+
+    ############################################################################
+
+    def add_group(self, name):
+
+        logging.debug("Adding group '%s'", name)
+        if name in self.groups:
+            logging.error("Group '%s' already exists, ignoring command", name)
+            return
+        self.groups = {name: WmGroup(self.wm_data)}
+        self.set_active_group(name)
+
+    ############################################################################
+
+    def set_active_group(self, name):
+
+        logging.debug("Setting group '%s' active", name)
+        self.active_group = name
+        self.update_status_bar()
 
     ############################################################################
 
@@ -83,21 +110,9 @@ class WmScreen(object):
 
     ############################################################################
 
-    def add_group(self, name):
-
-        logging.debug("Adding group '%s'", name)
-        if name in self.groups:
-            logging.error("Group '%s' already exists, ignoring command", name)
-            return
-        self.groups = {name: WmGroup(self.wm_data)}
-        self.set_active_group(name)
-
-    ############################################################################
-
-    def set_active_group(self, name):
-
-        logging.debug("Setting group '%s' active", name)
-        self.active_group = name
+    def update_status_bar(self):
+        # TODO
+        pass
 
     ############################################################################
 
@@ -113,9 +128,9 @@ class WmScreen(object):
     def event_key_press(self, event):
 
         lookup = (event.state, event.detail)
-        if lookup in self.wm_data.config.keys:
+        if lookup in self.wm_data.keymap:
 
-            cmd = self.wm_data.config.keys[lookup]
+            cmd = self.wm_data.keymap[lookup]
             if cmd in self.cmd_dispatch:
                 self.cmd_dispatch[cmd]()
             else:
