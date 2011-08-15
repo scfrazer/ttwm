@@ -21,12 +21,11 @@ class WmStack(object):
             'kill_window': self.cmd_kill_window
             }
 
-        border_width = self.wm_data.config.display.border_width
         self.top = top
         self.left = left
-        self.width = width - 2 * border_width
-        self.height = height - 2 * border_width
-        self.y_offset = self.wm_data.config.display.tab_height - 1  # -1 to match tabs
+        self.width = width - 2 * wm_data.stack.border_width
+        self.height = height - 2 * wm_data.stack.border_width
+        self.y_offset = wm_data.tab.height - wm_data.stack.border_width
 
         self.windows = []
         self.focused_window_num = 0
@@ -43,10 +42,10 @@ class WmStack(object):
 
         self.parent_window = self.wm_data.root.create_window(
             self.top, self.left, self.width, self.height,
-            self.wm_data.config.display.border_width,
+            self.wm_data.stack.border_width,
             X.CopyFromParent, X.InputOutput, X.CopyFromParent,
             background_pixmap=X.ParentRelative,
-            border_pixel=self.wm_data.config.colors.tab_ff_bg)
+            border_pixel=self.wm_data.tab.ff_bg)
 
         self.parent_window.change_attributes(event_mask=X.SubstructureNotifyMask)
 
@@ -75,9 +74,12 @@ class WmStack(object):
                 width += 1
 
             tab = self.parent_window.create_window(
-                left_edge, -1,  # -1 so it's flush with the parent border
-                width - 2, self.wm_data.config.display.tab_height - 2,  # -2 for border
-                1, X.CopyFromParent, X.InputOutput, X.CopyFromParent)
+                left_edge,
+                0 - self.wm_data.stack.border_width,
+                width - 2 * self.wm_data.tab.border_width,
+                self.wm_data.tab.height - 2 * self.wm_data.tab.border_width,
+                self.wm_data.tab.border_width,
+                X.CopyFromParent, X.InputOutput, X.CopyFromParent)
 
             left_edge += width
 
@@ -92,25 +94,24 @@ class WmStack(object):
         # TODO Unfocused stacks
 
         if tab_num == self.focused_window_num:
-            gc = self.wm_data.gcs.tab_ff
-            background_pixel = self.wm_data.config.colors.tab_ff_bg
-            border_pixel = self.wm_data.config.colors.tab_ff_bo
+            gc = self.wm_data.tab.ff_gc
+            bg_pixel = self.wm_data.tab.ff_bg
+            border_pixel = self.wm_data.tab.ff_border
         else:
             gc = self.wm_data.gcs.tab_fu
-            background_pixel = self.wm_data.config.colors.tab_fu_bg
-            border_pixel = self.wm_data.config.colors.tab_fu_bo
+            bg_pixel = self.wm_data.tab.fu_bg
+            border_pixel = self.wm_data.tab.fu_border
 
         tab = self.tabs[tab_num]
         tab.change_attributes(border_pixel=border_pixel,
-                              background_pixel=background_pixel)
+                              background_pixel=bg_pixel)
 
         geom = tab.get_geometry()
         title_text = self.windows[tab_num].get_wm_name()
         title_text_extents = gc.query_text_extents(title_text)
         tab.clear_area(width=geom.width, height=geom.height)
         tab.draw_text(gc, (geom.width - title_text_extents.overall_width) / 2,
-                      self.wm_data.config.fonts.title_height - 2,  # -2 for border
-                      title_text)
+                      self.wm_data.tab.font_y_offset, title_text)
 
     ############################################################################
 

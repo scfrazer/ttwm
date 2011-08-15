@@ -8,7 +8,7 @@ import Xlib.XK as XK
 
 class WmDataStack(object):
 
-    def __init__(self, config):
+    def __init__(self, dispaly, screen, config):
 
         self.border_width = config.stack.border_width
 
@@ -30,24 +30,24 @@ class WmDataTab(object):
         colormap = screen.default_colormap
 
         fg = colormap.alloc_named_color(config.tab.ff_fg).pixel
-        bg = colormap.alloc_named_color(config.tab.ff_bg).pixel
-        self.ff_gc = screen.root.create_gc(font=font, foreground=fg, background=bg)
-        self.ff_border = colormap.alloc_named_color(self.ff_bo).pixel
+        self.ff_bg = colormap.alloc_named_color(config.tab.ff_bg).pixel
+        self.ff_gc = screen.root.create_gc(font=font, foreground=fg, background=self.ff_bg)
+        self.ff_border = colormap.alloc_named_color(config.tab.ff_bo).pixel
 
         fg = colormap.alloc_named_color(config.tab.fu_fg).pixel
-        bg = colormap.alloc_named_color(config.tab.fu_bg).pixel
-        self.fu_gc = screen.root.create_gc(font=font, foreground=fg, background=bg)
-        self.fu_border = colormap.alloc_named_color(self.fu_bo).pixel
+        self.fu_bg = colormap.alloc_named_color(config.tab.fu_bg).pixel
+        self.fu_gc = screen.root.create_gc(font=font, foreground=fg, background=self.fu_bg)
+        self.fu_border = colormap.alloc_named_color(config.tab.fu_bo).pixel
 
         fg = colormap.alloc_named_color(config.tab.uf_fg).pixel
-        bg = colormap.alloc_named_color(config.tab.uf_bg).pixel
-        self.uf_gc = screen.root.create_gc(font=font, foreground=fg, background=bg)
-        self.uf_border = colormap.alloc_named_color(self.uf_bo).pixel
+        self.uf_bg = colormap.alloc_named_color(config.tab.uf_bg).pixel
+        self.uf_gc = screen.root.create_gc(font=font, foreground=fg, background=self.uf_bg)
+        self.uf_border = colormap.alloc_named_color(config.tab.uf_bo).pixel
 
         fg = colormap.alloc_named_color(config.tab.uu_fg).pixel
-        bg = colormap.alloc_named_color(config.tab.uu_bg).pixel
-        self.uu_gc = screen.root.create_gc(font=font, foreground=fg, background=bg)
-        self.uu_border = colormap.alloc_named_color(self.uu_bo).pixel
+        self.uu_bg = colormap.alloc_named_color(config.tab.uu_bg).pixel
+        self.uu_gc = screen.root.create_gc(font=font, foreground=fg, background=self.uu_bg)
+        self.uu_border = colormap.alloc_named_color(config.tab.uu_bo).pixel
 
 ################################################################################
 
@@ -59,9 +59,9 @@ class WmDataStatusBar(object):
 
         colormap = screen.default_colormap
 
-        bg = colormap.alloc_named_color(config.status_bar.ff_bg).pixel
+        bg = colormap.alloc_named_color(config.status_bar.bg).pixel
         self.gc = screen.root.create_gc(background=bg)
-        self.border = colormap.alloc_named_color(self.ff_bo).pixel
+        self.border = colormap.alloc_named_color(config.status_bar.bo).pixel
 
 ################################################################################
 
@@ -81,14 +81,14 @@ class WmDataGroup(object):
         colormap = screen.default_colormap
 
         fg = colormap.alloc_named_color(config.group.active_fg).pixel
-        bg = colormap.alloc_named_color(config.group.active_bg).pixel
-        self.active_gc = screen.root.create_gc(font=font, foreground=fg, background=bg)
-        self.active_border = colormap.alloc_named_color(self.active_bo).pixel
+        self.active_bg = colormap.alloc_named_color(config.group.active_bg).pixel
+        self.active_gc = screen.root.create_gc(font=font, foreground=fg, background=self.active_bg)
+        self.active_border = colormap.alloc_named_color(config.group.active_bo).pixel
 
         fg = colormap.alloc_named_color(config.group.inactive_fg).pixel
-        bg = colormap.alloc_named_color(config.group.inactive_bg).pixel
-        self.inactive_gc = screen.root.create_gc(font=font, foreground=fg, background=bg)
-        self.inactive_border = colormap.alloc_named_color(self.inactive_bo).pixel
+        self.inactive_bg = colormap.alloc_named_color(config.group.inactive_bg).pixel
+        self.inactive_gc = screen.root.create_gc(font=font, foreground=fg, background=self.inactive_bg)
+        self.inactive_border = colormap.alloc_named_color(config.group.inactive_bo).pixel
 
 ################################################################################
 
@@ -110,7 +110,7 @@ class WmDataMeter(object):
         fg = colormap.alloc_named_color(config.meter.fg).pixel
         bg = colormap.alloc_named_color(config.meter.bg).pixel
         self.gc = screen.root.create_gc(font=font, foreground=fg, background=bg)
-        self.border = colormap.alloc_named_color(self.bo).pixel
+        self.border = colormap.alloc_named_color(config.meter.bo).pixel
 
 ################################################################################
 
@@ -135,7 +135,7 @@ class WmData(object):
         self.meter = WmDataMeter(display, screen, config)
 
         self.keymap = {}
-        self.parse_keys(display, config.keys)
+        self.parse_keys(display, config)
 
         self.setup_atoms()
 
@@ -152,13 +152,13 @@ class WmData(object):
             key_def = getattr(config.keys, command)
             (modifier, key) = key_def.split('+')  # TODO Handle multiple modifiers
 
-            if modifier == 'mod4':
+            if modifier == 'Mod4':
                 mod_mask = X.Mod4Mask
-            elif modifier == 'mod3':
+            elif modifier == 'Mod3':
                 mod_mask = X.Mod3Mask
-            elif modifier == 'mod2':
+            elif modifier == 'Mod2':
                 mod_mask = X.Mod2Mask
-            elif modifier == 'mod1':
+            elif modifier == 'Mod1':
                 mod_mask = X.Mod1Mask
             else:
                 print "Command '%s' uses unknown modifier '%s'" % (command, modifier)
