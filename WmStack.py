@@ -41,7 +41,7 @@ class WmStack(object):
     def create_parent_window(self):
 
         self.parent_window = self.wm_data.root.create_window(
-            self.top, self.left, self.width, self.height,
+            self.left, self.top, self.width, self.height,
             self.wm_data.stack.border_width,
             X.CopyFromParent, X.InputOutput, X.CopyFromParent,
             background_pixmap=X.ParentRelative,

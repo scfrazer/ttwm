@@ -59,8 +59,20 @@ class WmScreen(object):
     ############################################################################
 
     def create_status_bar(self):
-        # TODO
-        pass
+
+        geom = self.wm_data.root.get_geometry()
+
+        self.status_bar_window = self.wm_data.root.create_window(
+            0, geom.height - self.wm_data.status_bar.height,
+            geom.width - 2 * self.wm_data.status_bar.border_width,
+            self.wm_data.status_bar.height - 2 * self.wm_data.status_bar.border_width,
+            self.wm_data.status_bar.border_width,
+            X.CopyFromParent, X.InputOutput, X.CopyFromParent,
+            background_pixel=self.wm_data.status_bar.bg,
+            border_pixel=self.wm_data.status_bar.border)
+
+        self.status_bar_window.change_attributes(event_mask=X.SubstructureNotifyMask)
+        self.status_bar_window.map()
 
     ############################################################################
 

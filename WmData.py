@@ -59,8 +59,8 @@ class WmDataStatusBar(object):
 
         colormap = screen.default_colormap
 
-        bg = colormap.alloc_named_color(config.status_bar.bg).pixel
-        self.gc = screen.root.create_gc(background=bg)
+        self.bg = colormap.alloc_named_color(config.status_bar.bg).pixel
+        self.gc = screen.root.create_gc(background=self.bg)
         self.border = colormap.alloc_named_color(config.status_bar.bo).pixel
 
 ################################################################################
@@ -133,6 +133,8 @@ class WmData(object):
         self.status_bar = WmDataStatusBar(display, screen, config)
         self.group = WmDataGroup(display, screen, config)
         self.meter = WmDataMeter(display, screen, config)
+
+        self.status_bar.height = max(self.group.height, self.meter.height)
 
         self.keymap = {}
         self.parse_keys(display, config)
