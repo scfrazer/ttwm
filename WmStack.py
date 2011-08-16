@@ -25,7 +25,7 @@ class WmStack(object):
         self.left = left
         self.width = width - 2 * wm_data.stack.border_width
         self.height = height - 2 * wm_data.stack.border_width
-        self.y_offset = wm_data.tab.height - wm_data.stack.border_width
+        self.client_y_offset = wm_data.tab.height - wm_data.stack.border_width
 
         self.windows = []
         self.focused_window_num = 0
@@ -98,7 +98,7 @@ class WmStack(object):
             bg_pixel = self.wm_data.tab.ff_bg
             border_pixel = self.wm_data.tab.ff_border
         else:
-            gc = self.wm_data.gcs.tab_fu
+            gc = self.wm_data.tab.fu_gc
             bg_pixel = self.wm_data.tab.fu_bg
             border_pixel = self.wm_data.tab.fu_border
 
@@ -123,7 +123,7 @@ class WmStack(object):
         # UnmapNotify
 
         self.wm_data.root.change_attributes(event_mask=X.SubstructureRedirectMask)
-        window.reparent(self.parent_window, 0, self.y_offset)
+        window.reparent(self.parent_window, 0, self.client_y_offset)
         self.wm_data.root.change_attributes(event_mask=(X.SubstructureRedirectMask
                                                         | X.SubstructureNotifyMask))
         self.resize_window(window)
@@ -172,7 +172,7 @@ class WmStack(object):
     ############################################################################
 
     def resize_window(self, window):
-        window.configure(width=self.width, height=self.height - self.y_offset)
+        window.configure(width=self.width, height=self.height - self.client_y_offset)
 
     ############################################################################
 

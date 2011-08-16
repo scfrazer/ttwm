@@ -160,7 +160,6 @@ class WmScreen(object):
 
         if event.window in self.windows:
             logging.debug("DestroyNotify for window %s", event.window)
-            event.window.change_save_set(X.SetModeDelete)
             for group_name in self.groups:
                 self.groups[group_name].remove_window(event.window)
             self.windows.remove(event.window)

@@ -25,7 +25,7 @@ class WmDataTab(object):
         font_height = query.font_ascent + query.font_descent
 
         self.height = font_height + config.tab.border_width * 2 + config.tab.padding * 2
-        self.font_y_offset = font_height + config.tab.padding
+        self.font_y_offset = font_height - 2 * config.tab.padding
 
         colormap = screen.default_colormap
 
