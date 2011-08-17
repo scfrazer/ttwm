@@ -27,6 +27,8 @@ class WmStack(object):
         self.height = height - 2 * wm_data.stack.border_width
         self.client_y_offset = wm_data.tab.height - wm_data.stack.border_width
 
+        self.focused = True
+
         self.windows = []
         self.focused_window_num = 0
 
@@ -91,16 +93,24 @@ class WmStack(object):
 
     def update_tab(self, tab_num):
 
-        # TODO Unfocused stacks
-
-        if tab_num == self.focused_window_num:
-            gc = self.wm_data.tab.ff_gc
-            bg = self.wm_data.tab.ff_bg
-            bo = self.wm_data.tab.ff_bo
+        if self.focused:
+            if tab_num == self.focused_window_num:
+                gc = self.wm_data.tab.ff_gc
+                bg = self.wm_data.tab.ff_bg
+                bo = self.wm_data.tab.ff_bo
+            else:
+                gc = self.wm_data.tab.fu_gc
+                bg = self.wm_data.tab.fu_bg
+                bo = self.wm_data.tab.fu_bo
         else:
-            gc = self.wm_data.tab.fu_gc
-            bg = self.wm_data.tab.fu_bg
-            bo = self.wm_data.tab.fu_bo
+            if tab_num == self.focused_window_num:
+                gc = self.wm_data.tab.uf_gc
+                bg = self.wm_data.tab.uf_bg
+                bo = self.wm_data.tab.uf_bo
+            else:
+                gc = self.wm_data.tab.uu_gc
+                bg = self.wm_data.tab.uu_bg
+                bo = self.wm_data.tab.uu_bo
 
         tab = self.tabs[tab_num]
         tab.change_attributes(border_pixel=bo, background_pixel=bg)
@@ -226,6 +236,9 @@ class WmStack(object):
     ############################################################################
 
     def cmd_kill_window(self):
+
+        if len(self.windows) == 0:
+            return
 
         window = self.windows[self.focused_window_num]
         if self.wm_data.atoms.WM_DELETE_WINDOW in window.get_wm_protocols():

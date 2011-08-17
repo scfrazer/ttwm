@@ -122,6 +122,12 @@ class WmConfigKeys(WmConfigObject):
         self.prev_window = "Mod4+p"
         self.kill_window = "Mod4+q"
 
+        self.split_horizontal = "Mod4+h"
+        self.split_vertical = "Mod4+v"
+        self.next_stack = "Mod4+l"
+        self.prev_stack = "Mod4+h"
+        self.kill_stack = "Mod4+k"
+
         self.parse(config_obj, section)
 
 ################################################################################

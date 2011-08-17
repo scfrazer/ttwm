@@ -149,7 +149,12 @@ class WmData(object):
 
         commands = ['next_window',
                     'prev_window',
-                    'kill_window']
+                    'kill_window',
+                    'split_horizontal',
+                    'split_vertical',
+                    'next_stack',
+                    'prev_stack',
+                    'kill_stack']
 
         for command in commands:
 

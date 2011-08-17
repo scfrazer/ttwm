@@ -1,7 +1,5 @@
 #+title: TODO
 
-* TODO Display group name in bottom status bar
-
 * TODO Group commands [0/5]
   - [ ] Split stack horizontally/vertically
   - [ ] Previous/next stack

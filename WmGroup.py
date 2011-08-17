@@ -11,7 +11,14 @@ class WmGroup(object):
         self.wm_data = wm_data
 
         self.event_dispatch = {}
-        self.cmd_dispatch = {}
+
+        self.cmd_dispatch = {
+            'split_horizontal': self.cmd_split_horizontal,
+            'split_vertical': self.cmd_split_vertical,
+            'next_stack': self.cmd_next_stack,
+            'prev_stack': self.cmd_prev_stack,
+            'kill_stack': self.cmd_kill_stack
+            }
 
         geom = wm_data.root.get_geometry()
         self.stacks = [WmStack(wm_data, top=0, left=0,
@@ -32,6 +39,8 @@ class WmGroup(object):
 
         for stack in self.stacks:
             stack.remove_window(window)
+
+    ############################################################################
 
     def num_windows(self):
 
@@ -58,3 +67,28 @@ class WmGroup(object):
             self.event_dispatch[event.type](event)
         else:
             self.stacks[self.focused_stack_num].handle_event(event)
+
+    ############################################################################
+
+    def cmd_split_horizontal(self):
+        logging.debug('split_horizontal')
+
+    ############################################################################
+
+    def cmd_split_vertical(self):
+        logging.debug('split_vertical')
+
+    ############################################################################
+
+    def cmd_next_stack(self):
+        logging.debug('next_stack')
+
+    ############################################################################
+
+    def cmd_prev_stack(self):
+        logging.debug('prev_stack')
+
+    ############################################################################
+
+    def cmd_kill_stack(self):
+        logging.debug('kill_stack')
