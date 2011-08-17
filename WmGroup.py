@@ -5,8 +5,9 @@ from WmStack import WmStack
 
 class WmGroup(object):
 
-    def __init__(self, wm_data):
+    def __init__(self, name, wm_data):
 
+        self.name = name
         self.wm_data = wm_data
 
         self.event_dispatch = {}
@@ -21,7 +22,8 @@ class WmGroup(object):
 
     def add_window(self, window):
 
-        logging.debug("Stack %d adding window %s", self.focused_stack_num, window)
+        logging.debug("Group %s, stack %d adding window %s",
+                      self.name, self.focused_stack_num, window)
         self.stacks[self.focused_stack_num].add_window(window)
 
     ############################################################################
@@ -30,6 +32,14 @@ class WmGroup(object):
 
         for stack in self.stacks:
             stack.remove_window(window)
+
+    def num_windows(self):
+
+        num_windows = 0
+        for stack in self.stacks:
+            num_windows += len(stack.windows)
+
+        return num_windows
 
     ############################################################################
 

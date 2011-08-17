@@ -86,13 +86,13 @@ class WmConfigGroup(WmConfigObject):
         self.border_width = 1
         self.padding = 1
 
-        self.active_fg = '#ffffff'
-        self.active_bg = '#607080'
-        self.active_bo = '#708090'
+        self.f_fg = '#ffffff'
+        self.f_bg = '#607080'
+        self.f_bo = '#708090'
 
-        self.inactive_fg = '#a0a0a0'
-        self.inactive_bg = '#405060'
-        self.inactive_bo = '#607080'
+        self.u_fg = '#a0a0a0'
+        self.u_bg = '#405060'
+        self.u_bo = '#607080'
 
         self.parse(config_obj, section)
 

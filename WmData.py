@@ -32,22 +32,22 @@ class WmDataTab(object):
         fg = colormap.alloc_named_color(config.tab.ff_fg).pixel
         self.ff_bg = colormap.alloc_named_color(config.tab.ff_bg).pixel
         self.ff_gc = screen.root.create_gc(font=font, foreground=fg, background=self.ff_bg)
-        self.ff_border = colormap.alloc_named_color(config.tab.ff_bo).pixel
+        self.ff_bo = colormap.alloc_named_color(config.tab.ff_bo).pixel
 
         fg = colormap.alloc_named_color(config.tab.fu_fg).pixel
         self.fu_bg = colormap.alloc_named_color(config.tab.fu_bg).pixel
         self.fu_gc = screen.root.create_gc(font=font, foreground=fg, background=self.fu_bg)
-        self.fu_border = colormap.alloc_named_color(config.tab.fu_bo).pixel
+        self.fu_bo = colormap.alloc_named_color(config.tab.fu_bo).pixel
 
         fg = colormap.alloc_named_color(config.tab.uf_fg).pixel
         self.uf_bg = colormap.alloc_named_color(config.tab.uf_bg).pixel
         self.uf_gc = screen.root.create_gc(font=font, foreground=fg, background=self.uf_bg)
-        self.uf_border = colormap.alloc_named_color(config.tab.uf_bo).pixel
+        self.uf_bo = colormap.alloc_named_color(config.tab.uf_bo).pixel
 
         fg = colormap.alloc_named_color(config.tab.uu_fg).pixel
         self.uu_bg = colormap.alloc_named_color(config.tab.uu_bg).pixel
         self.uu_gc = screen.root.create_gc(font=font, foreground=fg, background=self.uu_bg)
-        self.uu_border = colormap.alloc_named_color(config.tab.uu_bo).pixel
+        self.uu_bo = colormap.alloc_named_color(config.tab.uu_bo).pixel
 
 ################################################################################
 
@@ -61,7 +61,7 @@ class WmDataStatusBar(object):
 
         self.bg = colormap.alloc_named_color(config.status_bar.bg).pixel
         self.gc = screen.root.create_gc(background=self.bg)
-        self.border = colormap.alloc_named_color(config.status_bar.bo).pixel
+        self.bo = colormap.alloc_named_color(config.status_bar.bo).pixel
 
 ################################################################################
 
@@ -70,25 +70,26 @@ class WmDataGroup(object):
     def __init__(self, display, screen, config):
 
         self.border_width = config.group.border_width
+        self.padding = config.group.padding
 
         font = display.open_font(config.group.font)
         query = font.query()
         font_height = query.font_ascent + query.font_descent
 
         self.height = font_height + config.group.border_width * 2 + config.group.padding * 2
-        self.font_y_offset = font_height + config.group.padding
+        self.font_y_offset = font_height - 2 * config.group.padding
 
         colormap = screen.default_colormap
 
-        fg = colormap.alloc_named_color(config.group.active_fg).pixel
-        self.active_bg = colormap.alloc_named_color(config.group.active_bg).pixel
-        self.active_gc = screen.root.create_gc(font=font, foreground=fg, background=self.active_bg)
-        self.active_border = colormap.alloc_named_color(config.group.active_bo).pixel
+        fg = colormap.alloc_named_color(config.group.f_fg).pixel
+        self.f_bg = colormap.alloc_named_color(config.group.f_bg).pixel
+        self.f_gc = screen.root.create_gc(font=font, foreground=fg, background=self.f_bg)
+        self.f_bo = colormap.alloc_named_color(config.group.f_bo).pixel
 
-        fg = colormap.alloc_named_color(config.group.inactive_fg).pixel
-        self.inactive_bg = colormap.alloc_named_color(config.group.inactive_bg).pixel
-        self.inactive_gc = screen.root.create_gc(font=font, foreground=fg, background=self.inactive_bg)
-        self.inactive_border = colormap.alloc_named_color(config.group.inactive_bo).pixel
+        fg = colormap.alloc_named_color(config.group.u_fg).pixel
+        self.u_bg = colormap.alloc_named_color(config.group.u_bg).pixel
+        self.u_gc = screen.root.create_gc(font=font, foreground=fg, background=self.u_bg)
+        self.u_bo = colormap.alloc_named_color(config.group.u_bo).pixel
 
 ################################################################################
 
@@ -97,20 +98,21 @@ class WmDataMeter(object):
     def __init__(self, display, screen, config):
 
         self.border_width = config.meter.border_width
+        self.padding = config.meter.padding
 
         font = display.open_font(config.meter.font)
         query = font.query()
         font_height = query.font_ascent + query.font_descent
 
         self.height = font_height + config.meter.border_width * 2 + config.meter.padding * 2
-        self.font_y_offset = font_height + config.meter.padding
+        self.font_y_offset = font_height - 2 * config.meter.padding
 
         colormap = screen.default_colormap
 
         fg = colormap.alloc_named_color(config.meter.fg).pixel
-        bg = colormap.alloc_named_color(config.meter.bg).pixel
-        self.gc = screen.root.create_gc(font=font, foreground=fg, background=bg)
-        self.border = colormap.alloc_named_color(config.meter.bo).pixel
+        self.bg = colormap.alloc_named_color(config.meter.bg).pixel
+        self.gc = screen.root.create_gc(font=font, foreground=fg, background=self.bg)
+        self.bo = colormap.alloc_named_color(config.meter.bo).pixel
 
 ################################################################################
 

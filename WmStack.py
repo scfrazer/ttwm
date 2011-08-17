@@ -95,16 +95,15 @@ class WmStack(object):
 
         if tab_num == self.focused_window_num:
             gc = self.wm_data.tab.ff_gc
-            bg_pixel = self.wm_data.tab.ff_bg
-            border_pixel = self.wm_data.tab.ff_border
+            bg = self.wm_data.tab.ff_bg
+            bo = self.wm_data.tab.ff_bo
         else:
             gc = self.wm_data.tab.fu_gc
-            bg_pixel = self.wm_data.tab.fu_bg
-            border_pixel = self.wm_data.tab.fu_border
+            bg = self.wm_data.tab.fu_bg
+            bo = self.wm_data.tab.fu_bo
 
         tab = self.tabs[tab_num]
-        tab.change_attributes(border_pixel=border_pixel,
-                              background_pixel=bg_pixel)
+        tab.change_attributes(border_pixel=bo, background_pixel=bg)
 
         geom = tab.get_geometry()
         title_text = self.windows[tab_num].get_wm_name()

@@ -28,26 +28,26 @@ uu_bo: #506070
 
 border_width: 1
 
-bg: #607080
-bo: #607080
+bg: #304050
+bo: #304050
 
 [Group]
 
-font: -*-helvetica-medium-r-*-*-14-*
+font: -*-helvetica-medium-r-*-*-12-*
 border_width: 1
 padding: 1
 
-active_fg: #ffffff
-active_bg: #607080
-active_bo: #708090
+f_fg: #ffffff
+f_bg: #607080
+f_bo: #708090
 
-inactive_fg: #a0a0a0
-inactive_bg: #405060
-inactive_bo: #607080
+u_fg: #a0a0a0
+u_bg: #405060
+u_bo: #607080
 
 [Meter]
 
-font: -*-helvetica-medium-r-*-*-14-*
+font: -*-helvetica-medium-r-*-*-12-*
 border_width: 1
 padding: 1
 
