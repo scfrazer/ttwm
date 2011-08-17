@@ -55,6 +55,7 @@ class WmGroup(object):
     def do_cmd(self, cmd):
 
         if cmd in self.cmd_dispatch:
+            logging.debug(cmd)
             self.cmd_dispatch[cmd]()
         else:
             self.stacks[self.focused_stack_num].do_cmd(cmd)
@@ -71,24 +72,24 @@ class WmGroup(object):
     ############################################################################
 
     def cmd_split_horizontal(self):
-        logging.debug('split_horizontal')
+        pass
 
     ############################################################################
 
     def cmd_split_vertical(self):
-        logging.debug('split_vertical')
+        pass
 
     ############################################################################
 
     def cmd_next_stack(self):
-        logging.debug('next_stack')
+        pass
 
     ############################################################################
 
     def cmd_prev_stack(self):
-        logging.debug('prev_stack')
+        pass
 
     ############################################################################
 
     def cmd_kill_stack(self):
-        logging.debug('kill_stack')
+        pass

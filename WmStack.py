@@ -152,6 +152,7 @@ class WmStack(object):
             return
 
         window = self.windows[window_num]
+        logging.debug("Focusing window '%s' %s" % (window.get_wm_name(), window))
         window.configure(stack_mode=X.Above)
         window.set_input_focus(X.RevertToPointerRoot, X.CurrentTime)
 
@@ -193,11 +194,13 @@ class WmStack(object):
     ############################################################################
 
     def event_map_request(self, event):
+        logging.debug("MapRequest for window '%s' %s", event.window.get_wm_name(), event.window)
         self.add_window(event.window)
 
     ############################################################################
 
     def event_configure_request(self, event):
+        logging.debug("ConfigureRequest for window '%s' %s", event.window.get_wm_name(), event.window)
         self.resize_window(event.window)
 
     ############################################################################
@@ -205,6 +208,11 @@ class WmStack(object):
     def do_cmd(self, cmd):
 
         if cmd in self.cmd_dispatch:
+            if self.windows:
+                window = self.windows[self.focused_window_num]
+                logging.debug("%s, focused window is '%s' %s" % (cmd, window.get_wm_name(), window))
+            else:
+                logging.debug("%s, no focused window" % (cmd))
             self.cmd_dispatch[cmd]()
 
     ############################################################################

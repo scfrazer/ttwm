@@ -207,6 +207,7 @@ class WmScreen(object):
 
             cmd = self.wm_data.keymap[lookup]
             if cmd in self.cmd_dispatch:
+                logging.debug(cmd)
                 self.cmd_dispatch[cmd]()
             else:
                 self.groups[self.focused_group_num].do_cmd(cmd)
