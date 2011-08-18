@@ -21,9 +21,9 @@ class WmGroup(object):
             }
 
         geom = wm_data.root.get_geometry()
-        self.stacks = [WmStack(wm_data, top=0, left=0,
+        self.stacks = [WmStack(wm_data, x=0, y=0,
                                width=geom.width, height=geom.height - wm_data.status_bar.height)]
-        self.focused_stack_num = 0
+        self.focus_stack_num(0)
 
     ############################################################################
 
@@ -71,25 +71,63 @@ class WmGroup(object):
 
     ############################################################################
 
+    def focus_stack_num(self, stack_num):
+
+        logging.debug("Focusing stack %d" % (stack_num))
+        # TODO Unfocus current stack, and focus new stack
+        self.focused_stack_num = stack_num
+
+    ############################################################################
+
     def cmd_split_horizontal(self):
-        pass
+
+        cur_stack = self.stacks[self.focused_stack_num]
+        cur_stack_width = cur_stack.width + 2 * self.wm_data.stack.border_width
+        cur_stack_height = cur_stack.height + 2 * self.wm_data.stack.border_width
+
+        new_stack_width = cur_stack_width // 2
+        cur_stack_width -= new_stack_width
+        cur_stack.resize(cur_stack.x, cur_stack.y, cur_stack_width, cur_stack_height)
+
+        self.stacks.insert(self.focused_stack_num + 1,
+                           WmStack(self.wm_data,
+                                   x=cur_stack.x + cur_stack_width,
+                                   y=cur_stack.y,
+                                   width=new_stack_width,
+                                   height=cur_stack_height))
+
+        self.focus_stack_num(self.focused_stack_num + 1)
 
     ############################################################################
 
     def cmd_split_vertical(self):
+
+        # TODO Implement split vertical
         pass
 
     ############################################################################
 
     def cmd_next_stack(self):
-        pass
+
+        if len(self.stacks) < 2:
+            return
+
+        # TODO Implement next stack
 
     ############################################################################
 
     def cmd_prev_stack(self):
-        pass
+
+        if len(self.stacks) < 2:
+            return
+
+        # TODO Implement prev stack
 
     ############################################################################
 
     def cmd_kill_stack(self):
-        pass
+
+        if len(self.stacks) < 2:
+            return
+
+        # TODO Implement kill stack

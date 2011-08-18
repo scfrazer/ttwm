@@ -6,7 +6,7 @@ import Xlib.protocol as Xprotocol
 
 class WmStack(object):
 
-    def __init__(self, wm_data, top, left, width, height):
+    def __init__(self, wm_data, x, y, width, height):
 
         self.wm_data = wm_data
 
@@ -21,8 +21,10 @@ class WmStack(object):
             'kill_window': self.cmd_kill_window
             }
 
-        self.top = top
-        self.left = left
+        logging.debug('New stack x=%d y=%d width=%d height=%d', x, y, width, height)
+
+        self.x = x
+        self.y = y
         self.width = width - 2 * wm_data.stack.border_width
         self.height = height - 2 * wm_data.stack.border_width
         self.client_y_offset = wm_data.tab.height - wm_data.stack.border_width
@@ -43,7 +45,7 @@ class WmStack(object):
     def create_parent_window(self):
 
         self.parent_window = self.wm_data.root.create_window(
-            self.left, self.top, self.width, self.height,
+            self.x, self.y, self.width, self.height,
             self.wm_data.stack.border_width,
             X.CopyFromParent, X.InputOutput, X.CopyFromParent,
             background_pixmap=X.ParentRelative,
@@ -68,7 +70,7 @@ class WmStack(object):
         tab_width_leftover = self.width % len(self.windows)
 
         self.tabs = []
-        left_edge = 0
+        x = 0
         for (tab_num, window) in enumerate(self.windows):
 
             width = tab_width
@@ -76,14 +78,13 @@ class WmStack(object):
                 width += 1
 
             tab = self.parent_window.create_window(
-                left_edge,
-                0 - self.wm_data.stack.border_width,
+                x, 0 - self.wm_data.stack.border_width,
                 width - 2 * self.wm_data.tab.border_width,
                 self.wm_data.tab.height - 2 * self.wm_data.tab.border_width,
                 self.wm_data.tab.border_width,
                 X.CopyFromParent, X.InputOutput, X.CopyFromParent)
 
-            left_edge += width
+            x += width
 
             tab.map()
             self.tabs.append(tab)
@@ -124,6 +125,13 @@ class WmStack(object):
 
     ############################################################################
 
+    def resize(self, x, y, width, height):
+
+        # TODO Implement stack resize
+        logging.debug('Resizing stack to x=%d y=%d width=%d height=%d', x, y, width, height)
+
+    ############################################################################
+
     def add_window(self, window):
 
         logging.debug("Adding window '%s' %s", window.get_wm_name(), window)
@@ -135,7 +143,7 @@ class WmStack(object):
         window.reparent(self.parent_window, 0, self.client_y_offset)
         self.wm_data.root.change_attributes(event_mask=(X.SubstructureRedirectMask
                                                         | X.SubstructureNotifyMask))
-        self.resize_window(window)
+        self.resize_client_window(window)
 
         if self.windows:
             self.focused_window_num += 1
@@ -181,7 +189,8 @@ class WmStack(object):
 
     ############################################################################
 
-    def resize_window(self, window):
+    def resize_client_window(self, window):
+
         window.configure(width=self.width, height=self.height - self.client_y_offset)
 
     ############################################################################
@@ -201,7 +210,7 @@ class WmStack(object):
 
     def event_configure_request(self, event):
         logging.debug("ConfigureRequest for window '%s' %s", event.window.get_wm_name(), event.window)
-        self.resize_window(event.window)
+        self.resize_client_window(event.window)
 
     ############################################################################
 

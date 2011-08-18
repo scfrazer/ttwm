@@ -15,7 +15,7 @@ class WmDisplay(object):
         self.setup_display(display_name)
         self.config = WmConfig()
         self.setup_screens()
-        self.set_active_screen(0)
+        self.focus_screen_num(0)
 
     ############################################################################
 
@@ -43,10 +43,10 @@ class WmDisplay(object):
 
     ############################################################################
 
-    def set_active_screen(self, screen_num):
+    def focus_screen_num(self, screen_num):
 
-        logging.debug("Setting screen %d active", screen_num)
-        self.active_screen = 0
+        logging.debug("Focusing screen %d", screen_num)
+        self.focused_screen_num = 0
 
     ############################################################################
 
@@ -59,10 +59,10 @@ class WmDisplay(object):
                               X.ConfigureRequest,
                               X.UnmapNotify,
                               X.DestroyNotify]:
-                self.screens[self.active_screen].handle_event(event)
+                self.screens[self.focused_screen_num].handle_event(event)
                 continue
 
-            # TODO Do anything with these?
+            # TODO Do something with CirculateRequest and ClientMessage?
 
             if event.type == X.CirculateRequest:
                 logging.debug("CirculateRequest: %s", event.window.get_wm_name())
@@ -72,7 +72,7 @@ class WmDisplay(object):
                 logging.debug("ClientMessage: %s", event.window.get_wm_name())
                 continue
 
-            # TODO This is a screen thing (I think)
+            # TODO Do something with EnterNotify (screen)?
 
             if event.type == X.EnterNotify:
                 logging.debug("EnterNotify")
