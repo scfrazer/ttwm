@@ -127,8 +127,17 @@ class WmStack(object):
 
     def resize(self, x, y, width, height):
 
-        # TODO Implement stack resize
         logging.debug('Resizing stack to x=%d y=%d width=%d height=%d', x, y, width, height)
+
+        self.x = x
+        self.y = y
+        self.width = width - 2 * self.wm_data.stack.border_width
+        self.height = height - 2 * self.wm_data.stack.border_width
+
+        self.parent_window.configure(x=self.x, y=self.y, width=self.width, height=self.height)
+        for window in self.windows:
+            self.resize_client_window(window)
+        self.draw_tabs()
 
     ############################################################################
 
@@ -161,6 +170,7 @@ class WmStack(object):
 
         window = self.windows[window_num]
         logging.debug("Focusing window '%s' %s" % (window.get_wm_name(), window))
+        window.map()
         window.configure(stack_mode=X.Above)
         window.set_input_focus(X.RevertToPointerRoot, X.CurrentTime)
 
@@ -169,6 +179,7 @@ class WmStack(object):
             self.focused_window_num = window_num
             self.update_tab(old_focused_window_num)
             self.update_tab(self.focused_window_num)
+            self.windows[old_focused_window_num].unmap()
 
     ############################################################################
 

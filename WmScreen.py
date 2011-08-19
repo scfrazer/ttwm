@@ -216,6 +216,7 @@ class WmScreen(object):
 
     def event_map_request(self, event):
 
+        logging.debug("MapNotify for window %s", event.window)
         event.window.map()
 
         if event.window not in self.windows:
