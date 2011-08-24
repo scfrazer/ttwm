@@ -11,13 +11,7 @@
   - [ ] Change window order
   - [ ] Run command
 
-* TODO Iconify/uniconify as windows are moved to top of stack
-
-* TODO Switch windows using tabs
-
 * TODO Catch exceptions and keyboard interrupts and exit gracefully [0/1]
   - [ ] Unmap and destroy windows/contexts/etc
-
-* MAYBE Send VisibilityNotify to set VisibilityFullyObscured/VisibilityUnobscured
 
 * MAYBE Handle iconified windows -- ClientMessage -> reject and send MapNotify to window

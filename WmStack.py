@@ -64,6 +64,8 @@ class WmStack(object):
         if len(self.windows) == 0:
             self.parent_window.clear_area(0, 0, self.width, self.height)
             self.focused_window_num = 0
+            self.create_tab(0, self.width)
+            self.update_tab(0)
             return
 
         tab_width = self.width / len(self.windows)
@@ -77,18 +79,26 @@ class WmStack(object):
             if tab_num < tab_width_leftover:
                 width += 1
 
-            tab = self.parent_window.create_window(
-                x, 0 - self.wm_data.stack.border_width,
-                width - 2 * self.wm_data.tab.border_width,
-                self.wm_data.tab.height - 2 * self.wm_data.tab.border_width,
-                self.wm_data.tab.border_width,
-                X.CopyFromParent, X.InputOutput, X.CopyFromParent)
+            tab = self.create_tab(x, width)
+            self.update_tab(tab_num)
 
             x += width
 
-            tab.map()
-            self.tabs.append(tab)
-            self.update_tab(tab_num)
+    ############################################################################
+
+    def create_tab(self, x, width):
+
+        tab = self.parent_window.create_window(
+            x, 0 - self.wm_data.stack.border_width,
+            width - 2 * self.wm_data.tab.border_width,
+            self.wm_data.tab.height - 2 * self.wm_data.tab.border_width,
+            self.wm_data.tab.border_width,
+            X.CopyFromParent, X.InputOutput, X.CopyFromParent)
+
+        tab.map()
+        self.tabs.append(tab)
+
+        return tab
 
     ############################################################################
 
@@ -116,9 +126,14 @@ class WmStack(object):
         tab = self.tabs[tab_num]
         tab.change_attributes(border_pixel=bo, background_pixel=bg)
 
-        geom = tab.get_geometry()
-        title_text = self.windows[tab_num].get_wm_name()
+        if len(self.windows) == 0:
+            title_text = "<Empty>"
+        else:
+            title_text = self.windows[tab_num].get_wm_name()
         title_text_extents = gc.query_text_extents(title_text)
+
+        geom = tab.get_geometry()
+
         tab.clear_area(width=geom.width, height=geom.height)
         tab.draw_text(gc, (geom.width - title_text_extents.overall_width) / 2,
                       self.wm_data.tab.font_y_offset, title_text)
