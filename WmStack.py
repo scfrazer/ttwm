@@ -140,6 +140,26 @@ class WmStack(object):
 
     ############################################################################
 
+    def unfocus(self):
+
+        self.focused = False
+        for tab_num in xrange(len(self.tabs)):
+            self.update_tab(tab_num)
+
+    ############################################################################
+
+    def focus(self):
+
+        self.focused = True
+        for tab_num in xrange(len(self.tabs)):
+            self.update_tab(tab_num)
+        if len(self.windows) > 0:
+            self.focus_window_num(self.focused_window_num)
+        else:
+            self.parent_window.set_input_focus(X.RevertToPointerRoot, X.CurrentTime)
+
+    ############################################################################
+
     def resize(self, x, y, width, height):
 
         logging.debug('Resizing stack to x=%d y=%d width=%d height=%d', x, y, width, height)
@@ -160,8 +180,7 @@ class WmStack(object):
 
         logging.debug("Adding window '%s' %s", window.get_wm_name(), window)
 
-        # Turn off SubstructureNotifyMask during reparent to avoid spurious
-        # UnmapNotify
+        # Turn off SubstructureNotifyMask during reparent to avoid spurious UnmapNotify
 
         self.wm_data.root.change_attributes(event_mask=X.SubstructureRedirectMask)
         window.reparent(self.parent_window, 0, self.client_y_offset)
@@ -229,12 +248,14 @@ class WmStack(object):
     ############################################################################
 
     def event_map_request(self, event):
+
         logging.debug("MapRequest for window '%s' %s", event.window.get_wm_name(), event.window)
         self.add_window(event.window)
 
     ############################################################################
 
     def event_configure_request(self, event):
+
         logging.debug("ConfigureRequest for window '%s' %s", event.window.get_wm_name(), event.window)
         self.resize_client_window(event.window)
 
