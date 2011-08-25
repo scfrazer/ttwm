@@ -60,6 +60,7 @@ class WmStack(object):
         for tab in self.tabs:
             tab.unmap()
             tab.destroy()
+        self.tabs = []
 
         if len(self.windows) == 0:
             self.parent_window.clear_area(0, 0, self.width, self.height)
@@ -71,7 +72,6 @@ class WmStack(object):
         tab_width = self.width / len(self.windows)
         tab_width_leftover = self.width % len(self.windows)
 
-        self.tabs = []
         x = 0
         for (tab_num, window) in enumerate(self.windows):
 
