@@ -1,10 +1,9 @@
 #+title: TODO
 
-* TODO Group commands [0/5]
-  - [ ] Split stack horizontally/vertically
-  - [ ] Previous/next stack
+* TODO Group commands [2/4]
+  - [X] Split stack horizontally/vertically
+  - [X] Previous/next stack
   - [ ] Kill stack
-  - [ ] Maximize stack horizontally/vertically
   - [ ] Move window between stacks
 
 * TODO Stack commands [0/2]

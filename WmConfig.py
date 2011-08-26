@@ -124,8 +124,8 @@ class WmConfigKeys(WmConfigObject):
 
         self.split_horizontal = "Mod4+h"
         self.split_vertical = "Mod4+v"
-        self.next_stack = "Mod4+l"
-        self.prev_stack = "Mod4+h"
+        self.next_stack = "Mod4+bracketright"
+        self.prev_stack = "Mod4+bracketleft"
         self.kill_stack = "Mod4+k"
 
         self.parse(config_obj, section)

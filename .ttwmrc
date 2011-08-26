@@ -63,6 +63,6 @@ kill_window: Mod4+q
 
 split_horizontal: Mod4+h
 split_vertical: Mod4+v
-next_stack: Mod4+l
-prev_stack: Mod4+j
+next_stack: Mod4+bracketright
+prev_stack: Mod4+bracketleft
 kill_stack: Mod4+k
