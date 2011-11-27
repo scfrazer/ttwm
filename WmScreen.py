@@ -187,7 +187,11 @@ class WmScreen(object):
             self.windows.append(window)
             window.change_save_set(X.SetModeInsert)
 
-            self.groups[self.focused_group_num].add_window(window)
+            top_window = window.get_wm_transient_for()
+            if top_window:
+                self.groups[self.focused_group_num].add_transient(top_window, window)
+            else:
+                self.groups[self.focused_group_num].add_window(window)
 
     ############################################################################
 
@@ -216,12 +220,16 @@ class WmScreen(object):
 
     def event_map_request(self, event):
 
-        logging.debug("MapNotify for window %s", event.window)
-        event.window.map()
+        window = event.window
+        logging.debug("MapNotify for window %s", window)
+        window.map()
 
-        if event.window not in self.windows:
-            self.windows.append(event.window)
-            event.window.change_save_set(X.SetModeInsert)
+        top_window = window.get_wm_transient_for()
+        if top_window:
+            self.groups[self.focused_group_num].add_transient(top_window, window)
+        elif window not in self.windows:
+            self.windows.append(window)
+            window.change_save_set(X.SetModeInsert)
             self.groups[self.focused_group_num].handle_event(event)
             self.update_group_tab(self.focused_group_num)
 

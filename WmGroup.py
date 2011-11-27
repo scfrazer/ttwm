@@ -36,6 +36,15 @@ class WmGroup(object):
 
     ############################################################################
 
+    def add_transient(self, top_window, window):
+
+        logging.debug("Group %s, stack %d adding transient %s to window %s",
+                      self.name, self.focused_stack_num, window, top_window)
+
+        # TODO Add transient windows
+        pass
+
+    ############################################################################
     def remove_window(self, window):
 
         for stack in self.stacks:
