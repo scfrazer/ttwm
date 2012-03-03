@@ -20,7 +20,8 @@ class WmScreen(object):
             X.KeyPress: self.event_key_press,
             X.MapRequest: self.event_map_request,
             X.UnmapNotify: self.event_unmap_notify,
-            X.DestroyNotify: self.event_destroy_notify
+            X.DestroyNotify: self.event_destroy_notify,
+            X.ClientMessage: self.event_client_message
             }
 
         self.cmd_dispatch = {}

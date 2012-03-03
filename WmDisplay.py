@@ -46,7 +46,7 @@ class WmDisplay(object):
     def focus_screen_num(self, screen_num):
 
         logging.debug("Focusing screen %d", screen_num)
-        self.focused_screen_num = 0
+        self.focused_screen_num = screen_num
 
     ############################################################################
 
@@ -58,22 +58,26 @@ class WmDisplay(object):
                               X.MapRequest,
                               X.ConfigureRequest,
                               X.UnmapNotify,
-                              X.DestroyNotify]:
+                              X.DestroyNotify,
+                              X.ClientMessage]:
                 self.screens[self.focused_screen_num].handle_event(event)
                 continue
 
-            # TODO Do something with CirculateRequest and ClientMessage?
-
-            if event.type == X.CirculateRequest:
-                logging.debug("CirculateRequest: %s", event.window.get_wm_name())
+            elif event.type == X.ClientMessage:
+                if event.client_type == self.screens[self.focused_screen_num].wm_data.atoms._NET_ACTIVE_WINDOW:
+                    print "TODO: _NET_ACTIVE_WINDOW"
+                else:
+                    logging.warning("ClientMessage: %s from %s", self.display.get_atom_name(event.client_type), event.window)
                 continue
 
-            if event.type == X.ClientMessage:
-                logging.debug("ClientMessage: %s", event.window.get_wm_name())
+            # TODO Do something with CirculateRequest?
+
+            elif event.type == X.CirculateRequest:
+                logging.warning("CirculateRequest: %s", event.window)
                 continue
 
             # TODO Do something with EnterNotify (screen)?
 
-            if event.type == X.EnterNotify:
-                logging.debug("EnterNotify")
+            elif event.type == X.EnterNotify:
+                logging.warning("EnterNotify")
                 continue

@@ -17,7 +17,7 @@ class WmConfigObject(object):
         for option in config_obj.options(section):
 
             if not hasattr(self, option):
-                print "Unknown option '%s' in '%s' section" % (option, section)
+                logging.critical("Unknown option '%s' in '%s' section", option, section)
                 sys.exit(1)
 
             if type(getattr(self, option)) == types.IntType:
@@ -154,7 +154,7 @@ class WmConfig(object):
         try:
             config_file = open(filename)
         except IOError:
-            print "\nError: Couldn't read '%s'\n" % (filename)
+            logging.critical("Couldn't read '%s'", filename)
             return
 
         logging.debug("Reading config file '%s'", config_file.name)

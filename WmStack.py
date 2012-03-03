@@ -130,6 +130,8 @@ class WmStack(object):
             title_text = "<Empty>"
         else:
             title_text = self.windows[tab_num].get_wm_name()
+            if title_text == '':
+                title_text = '<>'
         title_text_extents = gc.query_text_extents(title_text)
 
         geom = tab.get_geometry()

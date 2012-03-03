@@ -170,7 +170,7 @@ class WmData(object):
             elif modifier == 'Mod1':
                 mod_mask = X.Mod1Mask
             else:
-                print "Command '%s' uses unknown modifier '%s'" % (command, modifier)
+                logging.critical("Command '%s' uses unknown modifier '%s'", command, modifier)
                 sys.exit(1)
 
             keycode = display.keysym_to_keycode(XK.string_to_keysym(key))
@@ -183,3 +183,4 @@ class WmData(object):
         self.atoms = WmDataAtoms()
         self.atoms.WM_PROTOCOLS = self.display.intern_atom('WM_PROTOCOLS')
         self.atoms.WM_DELETE_WINDOW = self.display.intern_atom('WM_DELETE_WINDOW')
+        self.atoms._NET_ACTIVE_WINDOW = self.display.intern_atom('_NET_ACTIVE_WINDOW')
