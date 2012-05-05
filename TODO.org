@@ -1,4 +1,10 @@
-#+title: TODO
+#+title: TTWM
+
+* TODO Keep list of windows in group
+* TODO Put window tabs in window (in stack)
+* TODO Transient windows are top-level windows except for size
+* TODO Transient windows should appear in the correct group/stack which may not be the focused one
+* TODO Handle _NET_ACTIVE_WINDOW focusing
 
 * TODO Group commands [2/4]
   - [X] Split stack horizontally/vertically
@@ -12,5 +18,7 @@
 
 * TODO Catch exceptions and keyboard interrupts and exit gracefully [0/1]
   - [ ] Unmap and destroy windows/contexts/etc
+
+* TODO Change group tab color if window appears in non-focused group
 
 * MAYBE Handle iconified windows -- ClientMessage -> reject and send MapNotify to window

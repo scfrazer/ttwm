@@ -9,6 +9,7 @@ class WmGroup(object):
 
         self.name = name
         self.wm_data = wm_data
+        self.tab = None
 
         self.event_dispatch = {}
 

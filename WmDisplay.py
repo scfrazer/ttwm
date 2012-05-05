@@ -46,6 +46,7 @@ class WmDisplay(object):
     def focus_screen_num(self, screen_num):
 
         logging.debug("Focusing screen %d", screen_num)
+        # TODO Change screen focus
         self.focused_screen_num = screen_num
 
     ############################################################################
@@ -55,19 +56,16 @@ class WmDisplay(object):
             event = self.display.next_event()
 
             if event.type in [X.KeyPress,
-                              X.MapRequest,
-                              X.ConfigureRequest,
-                              X.UnmapNotify,
-                              X.DestroyNotify,
-                              X.ClientMessage]:
+                              X.MapRequest]:
                 self.screens[self.focused_screen_num].handle_event(event)
                 continue
 
-            elif event.type == X.ClientMessage:
-                if event.client_type == self.screens[self.focused_screen_num].wm_data.atoms._NET_ACTIVE_WINDOW:
-                    print "TODO: _NET_ACTIVE_WINDOW"
-                else:
-                    logging.warning("ClientMessage: %s from %s", self.display.get_atom_name(event.client_type), event.window)
+            elif event.type in [X.ConfigureRequest,
+                                X.UnmapNotify,
+                                X.DestroyNotify,
+                                X.ClientMessage]:
+                for screen in self.screens:
+                    screen.handle_event(event)
                 continue
 
             # TODO Do something with CirculateRequest?
